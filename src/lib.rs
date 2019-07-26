@@ -31,18 +31,22 @@
 //! - `named!(string)` takes a string and replaces any `\\N{name}`
 //!   sequences with the character with that name. NB. String escape
 //!   sequences cannot be customised, so the extra backslash (or a raw
-//!   string) is required.
+//!   string) is required, unless you use a raw string.
 //!
 //! ```rust
-//! #![feature(plugin)]
-//! #![plugin(unicode_names2_macros)]
-//! # extern crate unicode_names2; // pointless, just avoid extern crate being inserted
+//! #![feature(proc_macro_hygiene)]
+//!
+//! #[macro_use]
+//! extern crate unicode_names2_macros;
 //!
 //! fn main() {
 //!     let x: char = named_char!("snowman");
 //!     assert_eq!(x, '☃');
 //!
 //!     let y: &str = named!("foo bar \\N{BLACK STAR} baz qux");
+//!     assert_eq!(y, "foo bar ★ baz qux");
+//!
+//!     let y: &str = named!(r"foo bar \N{BLACK STAR} baz qux");
 //!     assert_eq!(y, "foo bar ★ baz qux");
 //! }
 //! ```
@@ -218,7 +222,6 @@ impl fmt::Display for Name {
 /// # Example
 ///
 /// ```rust
-/// # #![allow(unstable)]
 /// assert_eq!(unicode_names2::name('a').map(|n| n.to_string()),
 ///            Some("LATIN SMALL LETTER A".to_string()));
 /// assert_eq!(unicode_names2::name('\u{2605}').map(|n| n.to_string()),

@@ -9,14 +9,16 @@ homepage = "https://github.com/ProgVal/unicode_names2"
 repository = "https://github.com/ProgVal/unicode_names2"
 documentation = "https://docs.rs/unicode_names2/"
 license = "MIT/Apache-2.0"
-keywords = ["text", "unicode", "plugin"]
+keywords = ["text", "unicode", "macro"]
 description = "Support macros for `unicode_names2`."
 
 [features]
+
 unstable = []
 
 [dependencies]
 regex = "0.1.80"
+syn = "0.15"
 
 [dependencies.unicode_names2]
 path = ".."
@@ -24,4 +26,4 @@ version = "0.3.0"
 
 [lib]
 name = "unicode_names2_macros"
-plugin = true
+proc-macro = true

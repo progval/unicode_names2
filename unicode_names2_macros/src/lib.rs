@@ -2,70 +2,72 @@
 
 #![crate_type="dylib"]
 
-#![feature(plugin_registrar, plugin, rustc_private)]
-
-extern crate syntax;
-extern crate syntax_pos;
-extern crate rustc;
-extern crate rustc_plugin;
-
 extern crate regex;
 
 extern crate unicode_names2;
 
-use syntax::ast;
-use syntax::tokenstream::TokenTree;
-use syntax::source_map;
-use syntax_pos::symbol::Symbol;
-use syntax::ext::base::{self, ExtCtxt, MacResult, MacEager, DummyResult};
-use syntax::ext::build::AstBuilder;
-use rustc_plugin::Registry;
+#[macro_use]
+extern crate syn;
+extern crate proc_macro;
 
-#[plugin_registrar]
-#[doc(hidden)]
-pub fn plugin_registrar(registrar: &mut Registry) {
-    registrar.register_macro("named_char", named_char);
-    registrar.register_macro("named", named);
-}
-fn named_char(cx: &mut ExtCtxt, sp: source_map::Span,
-              tts: &[TokenTree]) -> Box<dyn MacResult+'static> {
-    match base::get_single_str_from_tts(cx, sp, tts, "named_char") {
-        None => {}
-        Some(name) => match unicode_names2::character(&name) {
-            None => cx.span_err(sp, &format!("`{}` does not name a character", name)),
+struct CharByName(syn::LitChar);
 
-            // everything worked!
-            Some(c) => return MacEager::expr(cx.expr_lit(sp, ast::LitKind::Char(c))),
+impl syn::parse::Parse for CharByName {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let string: syn::LitStr = input.parse()?;
+        let name = string.value();
+        match unicode_names2::character(&name) {
+            None => Err(syn::Error::new(string.span(), format!("`{}` does not name a character", name))),
+            Some(c) => Ok(CharByName(syn::LitChar::new(c, string.span()))),
         }
     }
-    // failed :(
-    DummyResult::expr(sp)
 }
-fn named(cx: &mut ExtCtxt, sp: source_map::Span, tts: &[TokenTree]) -> Box<dyn MacResult+'static> {
-    let string = match base::get_single_str_from_tts(cx, sp, tts, "named") {
-        None => return DummyResult::expr(sp),
-        Some(s) => s
-    };
 
-     // make sure unclosed braces don't escape.
-    let names_re = regex::Regex::new(r"\\N\{(.*?)(?:\}|$)").unwrap();
+#[proc_macro]
+pub fn named_char(stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let CharByName(c) = parse_macro_input!(stream as CharByName);
+    proc_macro::TokenTree::Literal(proc_macro::Literal::character(c.value())).into()
+}
 
-    let new = names_re.replace_all(&string, |c: &regex::Captures| {
-        let full = c.at(0).unwrap();
-        if !full.ends_with("}") {
-            cx.span_err(sp, &format!("unclosed escape in `named!`: {}", full));
-        } else {
-            let name = c.at(1).unwrap();
-            match unicode_names2::character(name) {
-                Some(c) => return c.to_string(),
-                None => {
-                    cx.span_err(sp, &format!("`{}` does not name a character", name));
+struct StringWithCharNames(syn::LitStr);
+
+impl syn::parse::Parse for StringWithCharNames {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let string: syn::LitStr = input.parse()?;
+        // make sure unclosed braces don't escape.
+        let names_re = regex::Regex::new(r"\\N\{(.*?)(?:\}|$)").unwrap();
+
+        let mut errors = Vec::new();
+        let new = names_re.replace_all(&string.value(), |c: &regex::Captures| {
+            let full = c.at(0).unwrap();
+            if !full.ends_with("}") {
+                errors.push(format!("unclosed escape in `named!`: {}", full));
+            } else {
+                let name = c.at(1).unwrap();
+                match unicode_names2::character(name) {
+                    Some(c) => {
+                        return c.to_string()
+                    },
+                    None => {
+                        errors.push(format!("`{}` does not name a character", name));
+                    }
                 }
             }
+            // failed :(
+            String::new()
+        });
+        if errors.len() > 0 {
+            // TODO: show all errors at once?
+            Err(syn::Error::new(string.span(), errors.get(0).unwrap()))
         }
-        // failed :(
-        String::new()
-    });
+        else {
+            Ok(StringWithCharNames(syn::LitStr::new(&new, string.span())))
+        }
+    }
+}
 
-    MacEager::expr(cx.expr_str(sp, Symbol::intern(&new)))
+#[proc_macro]
+pub fn named(stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let StringWithCharNames(s) = parse_macro_input!(stream as StringWithCharNames);
+    proc_macro::TokenTree::Literal(proc_macro::Literal::string(&s.value())).into()
 }

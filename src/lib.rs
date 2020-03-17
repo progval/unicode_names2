@@ -591,7 +591,7 @@ mod tests {
         assert_eq!(character("CJK UNIFIED IDEOGRAPH-1234"), None);
         assert_eq!(character("CJK UNIFIED IDEOGRAPH-EFGH"), None);
         assert_eq!(character("CJK UNIFIED IDEOGRAPH-12345"), None);
-        assert_eq!(character("CJK UNIFIED IDEOGRAPH-2A6D7"), None); // between Ext B and Ext C
+        assert_eq!(character("CJK UNIFIED IDEOGRAPH-2A6DE"), None); // between Ext B and Ext C
         assert_eq!(character("CJK UNIFIED IDEOGRAPH-2A6FF"), None);
     }
 

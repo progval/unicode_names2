@@ -38,7 +38,7 @@ fn try_phf_table(values: &[(char, String)],
                  lambda: usize, seed: u64) -> Option<(Vec<(u32, u32)>, Vec<char>)> {
 
     let hashes: Vec<_> =
-        values.iter().map(|&(n, ref s)| (split(hash(&**s, seed)), n)).collect();
+        values.iter().map(|&(n, ref s)| (split(hash(s, seed)), n)).collect();
 
     let table_len = hashes.len();
     let buckets_len = (table_len + lambda - 1) / lambda;
@@ -81,8 +81,8 @@ fn try_phf_table(values: &[(char, String)],
     let mut d1s = (0..(table_len as u32)).collect::<Vec<_>>();
     let mut d2s = d1s.clone();
     let mut rng: XorShiftRng = rand::random();
-    rng.shuffle(&mut *d1s);
-    rng.shuffle(&mut *d2s);
+    rng.shuffle(&mut d1s);
+    rng.shuffle(&mut d2s);
 
     // run through each bucket and try to fit the elements into the
     // array by choosing appropriate adjusting factors
@@ -127,7 +127,7 @@ fn try_phf_table(values: &[(char, String)],
         return None
     }
 
-    return Some((disps, map))
+    Some((disps, map))
 }
 
 pub fn create_phf(data: &[(char, String)], lambda: usize,

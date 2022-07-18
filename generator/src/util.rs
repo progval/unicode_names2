@@ -1,4 +1,4 @@
-use std::mem;
+
 
 pub fn smallest_index(n: usize) -> usize {
     for &x in [8, 16, 32].iter() {
@@ -14,8 +14,8 @@ pub fn smallest_u<I: Iterator<Item = u32>>(x: I) -> String {
 }
 pub fn split<'a, 'b>(s: &'a str, splitters: &'b [u8]) -> Split<'a, 'b> {
     Split {
-        s: s,
-        splitters: splitters,
+        s,
+        splitters,
         pending: "",
         done: false,
     }
@@ -36,7 +36,7 @@ impl<'a, 'b> Iterator for Split<'a, 'b> {
             self.done = true;
             return Some("")
         } else if !self.pending.is_empty() {
-            return Some(mem::replace(&mut self.pending, ""))
+            return Some(std::mem::take(&mut self.pending))
         }
 
         for (i, b) in self.s.bytes().enumerate() {
@@ -52,7 +52,7 @@ impl<'a, 'b> Iterator for Split<'a, 'b> {
         }
         // trailing data
         self.done = true;
-        return Some(self.s)
+        Some(self.s)
     }
 }
 

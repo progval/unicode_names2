@@ -23,11 +23,11 @@ mod phf;
 mod trie;
 mod util;
 
-static OUT_FILE: &'static str = "../src/generated.rs";
-static PHF_OUT_FILE: &'static str = "../src/generated_phf.rs";
-static IN_FILE: &'static str = "../data/UnicodeData.txt";
+static OUT_FILE: &str = "../src/generated.rs";
+static PHF_OUT_FILE: &str = "../src/generated_phf.rs";
+static IN_FILE: &str = "../data/UnicodeData.txt";
 
-static SPLITTERS: &'static [u8] = b"-";
+static SPLITTERS: &[u8] = b"-";
 
 fn get_table_data() -> (Vec<(char, String)>, Vec<(char, char)>) {
     macro_rules! extract {
@@ -58,8 +58,8 @@ fn get_table_data() -> (Vec<(char, String)>, Vec<(char, char)>) {
         };
 
         let (cp, name) = extract!(l.trim());
-        if name.starts_with("<") {
-            assert!(name.ends_with(">"), "should >: {}", name);
+        if name.starts_with('<') {
+            assert!(name.ends_with('>'), "should >: {}", name);
             let name = &name[1..name.len() - 1];
             if name.starts_with("CJK Ideograph") {
                 assert!(name.ends_with("First"));
@@ -109,7 +109,7 @@ fn create_lexicon_and_offsets(mut codepoint_names: Vec<(char, String)>) -> (Stri
     let mut substring_o_bytes = 0;
 
     for &(_, ref name) in codepoint_names.iter() {
-        for n in util::split(&**name, SPLITTERS) {
+        for n in util::split(name, SPLITTERS) {
             if n.len() == 1 && SPLITTERS.contains(&n.as_bytes()[0]) {
                 continue
             }
@@ -177,8 +177,8 @@ fn bin_data(dat: &[u32]) -> (Vec<u32>, Vec<u32>, usize) {
             t1.push((index >> shift) as u32)
         }
 
-        let my_size = t1.len() * util::smallest_type(t1.iter().map(|&x| x)) +
-            t2.len() * util::smallest_type(t2.iter().map(|&x| x));
+        let my_size = t1.len() * util::smallest_type(t1.iter().copied()) +
+            t2.len() * util::smallest_type(t2.iter().copied());
         println!("binning: shift {}, size {}", shift, my_size);
         if my_size < smallest {
             data = (t1, t2, shift);
@@ -276,7 +276,7 @@ fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: Vec<(char, String)>
         phrasebook_offsets[cp as usize] = start;
 
         let mut last_len = 0;
-        for w in util::split(&**name, SPLITTERS) {
+        for w in util::split(name, SPLITTERS) {
             let data = word_encodings.get(w.as_bytes()).expect(concat!("option on ", line!()));
             last_len = data.len();
             // info!("{}: '{}' {}", name, w, data);
@@ -292,25 +292,25 @@ fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: Vec<(char, String)>
     }
 
     // compress the offsets, hopefully collapsing all the 0's.
-    let (t1, t2, shift) = bin_data(&*phrasebook_offsets);
+    let (t1, t2, shift) = bin_data(&phrasebook_offsets);
 
     w!(ctxt, "pub const MAX_NAME_LENGTH: usize = {};\n", longest_name);
-    ctxt.write_plain_string("LEXICON", &*lexicon_string);
-    ctxt.write_debugs("LEXICON_OFFSETS", "u16", &*lexicon_offsets);
+    ctxt.write_plain_string("LEXICON", &lexicon_string);
+    ctxt.write_debugs("LEXICON_OFFSETS", "u16", &lexicon_offsets);
     ctxt.write_debugs("LEXICON_SHORT_LENGTHS", "u8",
-                        &*lexicon_short_lengths);
+                        &lexicon_short_lengths);
     ctxt.write_debugs("LEXICON_ORDERED_LENGTHS", "(usize, u8)",
-                     &*lexicon_ordered_lengths);
+                     &lexicon_ordered_lengths);
     w!(ctxt, "pub static PHRASEBOOK_SHORT: u8 = {};\n", short);
     ctxt.write_debugs("PHRASEBOOK", "u8",
-                        &*phrasebook);
+                        &phrasebook);
     w!(ctxt, "pub static PHRASEBOOK_OFFSET_SHIFT: usize = {};\n", shift);
     ctxt.write_debugs("PHRASEBOOK_OFFSETS1",
-                        &*util::smallest_u(t1.iter().map(|x| *x)),
-                        &*t1);
+                        &util::smallest_u(t1.iter().copied()),
+                        &t1);
     ctxt.write_debugs("PHRASEBOOK_OFFSETS2",
-                        &*util::smallest_u(t2.iter().map(|x| *x)),
-                        &*t2);
+                        &util::smallest_u(t2.iter().copied()),
+                        &t2);
 }
 
 fn main() {
@@ -322,7 +322,7 @@ fn main() {
     opts.optopt("", "truncate", "only handle the first N", "N");
     opts.optflag("h", "help", "print this message");
     let matches = match opts.parse(std::env::args().skip(1)) {
-        Ok(m) => m, Err(f) => panic!(f.to_string()),
+        Ok(m) => m, Err(f) => panic!("{}", f.to_string()),
     };
 
     if matches.opt_present("h") {
@@ -340,7 +340,7 @@ fn main() {
 
     let mut ctxt = Context {
         out: match file {
-            Some(ref p) => Box::new(BufWriter::new(File::create(&p.with_extension("tmp")).unwrap()))
+            Some(p) => Box::new(BufWriter::new(File::create(&p.with_extension("tmp")).unwrap()))
                 as Box<dyn Write>,
             None => Box::new(io::sink()) as Box<dyn Write>
         }
@@ -359,7 +359,7 @@ fn main() {
 
     if do_phf {
         let (n, disps, data) =
-            phf::create_phf(&*codepoint_names,
+            phf::create_phf(&codepoint_names,
                             lambda.map(|s| s.parse().ok().expect("invalid -l")).unwrap_or(3),
                             tries.map(|s| s.parse().ok().expect("invalid -t")).unwrap_or(2));
 
@@ -367,14 +367,14 @@ fn main() {
         w!(ctxt, "pub static NAME2CODE_N: u64 = {};\n", n);
         ctxt.write_debugs("NAME2CODE_DISP",
                          "(u16, u16)",
-                         &*disps);
+                         &disps);
 
-        ctxt.write_debugs("NAME2CODE_CODE", "char", &*data);
+        ctxt.write_debugs("NAME2CODE_CODE", "char", &data);
     } else {
         if lambda.is_some() { println!("-l/--phf-lambda only applies with --phf") }
         if tries.is_some() { println!("-t/--phf-tries only applies with --phf") }
 
-        write_cjk_ideograph_ranges(&mut ctxt, &*cjk);
+        write_cjk_ideograph_ranges(&mut ctxt, &cjk);
         ctxt.out.write(b"\n").unwrap();
         write_codepoint_maps(&mut ctxt, codepoint_names);
     }

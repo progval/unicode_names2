@@ -320,7 +320,10 @@ pub fn character(name: &str) -> Option<char> {
     for (place, byte) in buf.iter_mut().zip(name.bytes()) {
         *place = ASCII_UPPER_MAP[byte as usize]
     }
-    let search_name = &buf[..name.len()];
+    let search_name = match buf.get(..name.len()) {
+        None => return None,
+        Some(search_name) => search_name,
+    };
 
     // try `HANGUL SYLLABLE <choseong><jungseong><jongseong>`
     if search_name.starts_with(HANGUL_SYLLABLE_PREFIX.as_bytes()) {
@@ -517,11 +520,15 @@ mod tests {
 
     #[test]
     fn character_negative() {
+        use MAX_NAME_LENGTH;
+        let long_name = "x".repeat(100);
+        assert!(long_name.len() > MAX_NAME_LENGTH);  // Otherwise this test is pointless
         let names = [
             "",
             "x",
             "öäå",
-            "SPAACE"
+            "SPAACE",
+            &long_name,
             ];
         for &n in names.iter() {
             assert_eq!(character(n), None);

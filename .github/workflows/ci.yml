@@ -89,7 +89,7 @@ jobs:
         - ''
         - '--no-default-features'
 
-  test:
+  test-generator:
     name: Test generator
     runs-on: ubuntu-latest
 

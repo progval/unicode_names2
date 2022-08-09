@@ -53,24 +53,24 @@ jobs:
 
       - name: Build unicode_names2_macros
         uses: actions-rs/cargo@v1
-        working-directory: unicode_names2_macros/
         with:
           command: build
           args: --verbose ${{ matrix.features }}
+          working-directory: unicode_names2_macros/
 
       - name: Test unicode_names2_macros
         uses: actions-rs/cargo@v1
-        working-directory: unicode_names2_macros/
         with:
           command: test
           args: --verbose ${{ matrix.features }}
+          working-directory: unicode_names2_macros/
 
       - name: Doc unicode_names2_macros
         uses: actions-rs/cargo@v1
-        working-directory: unicode_names2_macros/
         with:
           command: doc
           args: --verbose ${{ matrix.features }}
+          working-directory: unicode_names2_macros/
 
   build:
     # We cannot test on these versions, because tests and bench rely on
@@ -128,21 +128,21 @@ jobs:
 
       - name: Build generator
         uses: actions-rs/cargo@v1
-        working-directory: generator/
         with:
           command: build
           args: --verbose ${{ matrix.features }}
+          working-directory: generator/
 
       - name: Test generator
         uses: actions-rs/cargo@v1
-        working-directory: generator/
         with:
           command: test
           args: --verbose ${{ matrix.features }}
+          working-directory: generator/
 
       - name: Doc generator
         uses: actions-rs/cargo@v1
-        working-directory: generator/
         with:
           command: doc
           args: --verbose ${{ matrix.features }}
+          working-directory: generator/

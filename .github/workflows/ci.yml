@@ -13,7 +13,6 @@ jobs:
         - stable
         - beta
         - nightly
-        - 1.48.0
 
         features:
         - ''
@@ -42,8 +41,46 @@ jobs:
           command: test
           args: --verbose ${{ matrix.features }}
 
+      - name: Bench
+        uses: actions-rs/cargo@v1
+        with:
+          command: bench
+          args: --verbose ${{ matrix.features }}
+
       - name: Doc
         uses: actions-rs/cargo@v1
         with:
           command: doc
+          args: --verbose ${{ matrix.features }}
+
+  build-old:
+    # We cannot test on these old versions, because tests and bench rely on
+    # features that were still unstable.
+    name: Build on old Rust versions
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        rust:
+        - 1.48.0
+
+        features:
+        - ''
+        - '--no-default-features'
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install rust (${{ matrix.rust }})
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          profile: minimal
+          override: true
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
           args: --verbose ${{ matrix.features }}

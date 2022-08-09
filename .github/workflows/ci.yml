@@ -89,6 +89,23 @@ jobs:
         - ''
         - '--no-default-features'
 
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install rust (${{ matrix.rust }})
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          profile: minimal
+          override: true
+
+      - name: Build generator
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --verbose ${{ matrix.features }}
+
   test-generator:
     name: Test generator
     runs-on: ubuntu-latest

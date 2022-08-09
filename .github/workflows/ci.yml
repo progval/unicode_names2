@@ -51,44 +51,23 @@ jobs:
           command: doc
           args: --verbose ${{ matrix.features }}
 
-      - name: cd unicode_names2_macros
-        run: cd unicode_names2_macros/
-
       - name: Build unicode_names2_macros
         uses: actions-rs/cargo@v1
+        working-directory: unicode_names2_macros/
         with:
           command: build
           args: --verbose ${{ matrix.features }}
 
       - name: Test unicode_names2_macros
         uses: actions-rs/cargo@v1
+        working-directory: unicode_names2_macros/
         with:
           command: test
           args: --verbose ${{ matrix.features }}
 
       - name: Doc unicode_names2_macros
         uses: actions-rs/cargo@v1
-        with:
-          command: doc
-          args: --verbose ${{ matrix.features }}
-
-      - name: cd generator
-        run: cd ../generator/
-
-      - name: Build generator
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --verbose ${{ matrix.features }}
-
-      - name: Test generator
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --verbose ${{ matrix.features }}
-
-      - name: Doc generator
-        uses: actions-rs/cargo@v1
+        working-directory: unicode_names2_macros/
         with:
           command: doc
           args: --verbose ${{ matrix.features }}
@@ -110,6 +89,15 @@ jobs:
         - ''
         - '--no-default-features'
 
+  test:
+    name: Test generator
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        rust:
+        - nightly
+
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -121,8 +109,34 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Build
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install rust (${{ matrix.rust }})
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          profile: minimal
+          override: true
+
+      - name: Build generator
         uses: actions-rs/cargo@v1
+        working-directory: generator/
         with:
           command: build
+          args: --verbose ${{ matrix.features }}
+
+      - name: Test generator
+        uses: actions-rs/cargo@v1
+        working-directory: generator/
+        with:
+          command: test
+          args: --verbose ${{ matrix.features }}
+
+      - name: Doc generator
+        uses: actions-rs/cargo@v1
+        working-directory: generator/
+        with:
+          command: doc
           args: --verbose ${{ matrix.features }}

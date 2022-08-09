@@ -55,22 +55,19 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --verbose ${{ matrix.features }}
-          working-directory: unicode_names2_macros/
+          args: --verbose ${{ matrix.features }} --manifest-path=unicode_names2_macros/Cargo.toml
 
       - name: Test unicode_names2_macros
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --verbose ${{ matrix.features }}
-          working-directory: unicode_names2_macros/
+          args: --verbose ${{ matrix.features }} --manifest-path=unicode_names2_macros/Cargo.toml
 
       - name: Doc unicode_names2_macros
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --verbose ${{ matrix.features }}
-          working-directory: unicode_names2_macros/
+          args: --verbose ${{ matrix.features }} --manifest-path=unicode_names2_macros/Cargo.toml
 
   build:
     # We cannot test on these versions, because tests and bench rely on
@@ -130,19 +127,16 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --verbose ${{ matrix.features }}
-          working-directory: generator/
+          args: --verbose ${{ matrix.features }} --manifest-path=generator/Cargo.toml
 
       - name: Test generator
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --verbose ${{ matrix.features }}
-          working-directory: generator/
+          args: --verbose ${{ matrix.features }} --manifest-path=generator/Cargo.toml
 
       - name: Doc generator
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --verbose ${{ matrix.features }}
-          working-directory: generator/
+          args: --verbose ${{ matrix.features }} --manifest-path=generator/Cargo.toml

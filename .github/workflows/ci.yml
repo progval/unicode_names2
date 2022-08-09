@@ -27,25 +27,67 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Build
+      - name: Build unicode_names2
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --verbose ${{ matrix.features }}
 
-      - name: Test
+      - name: Test unicode_names2
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: --verbose ${{ matrix.features }}
 
-      - name: Bench
+      - name: Bench unicode_names2
         uses: actions-rs/cargo@v1
         with:
           command: bench
           args: --verbose ${{ matrix.features }}
 
-      - name: Doc
+      - name: Doc unicode_names2
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --verbose ${{ matrix.features }}
+
+      - name: cd unicode_names2_macros
+        run: cd unicode_names2_macros/
+
+      - name: Build unicode_names2_macros
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --verbose ${{ matrix.features }}
+
+      - name: Test unicode_names2_macros
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --verbose ${{ matrix.features }}
+
+      - name: Doc unicode_names2_macros
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --verbose ${{ matrix.features }}
+
+      - name: cd generator
+        run: cd ../generator/
+
+      - name: Build generator
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --verbose ${{ matrix.features }}
+
+      - name: Test generator
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --verbose ${{ matrix.features }}
+
+      - name: Doc generator
         uses: actions-rs/cargo@v1
         with:
           command: doc

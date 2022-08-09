@@ -17,7 +17,6 @@ jobs:
 
         features:
         - ''
-        - '--features alloc --no-default-features'
         - '--no-default-features'
 
     steps:

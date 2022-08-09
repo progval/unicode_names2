@@ -109,17 +109,6 @@ jobs:
           profile: minimal
           override: true
 
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install rust (${{ matrix.rust }})
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust }}
-          profile: minimal
-          override: true
-
       - name: Build generator
         uses: actions-rs/cargo@v1
         working-directory: generator/

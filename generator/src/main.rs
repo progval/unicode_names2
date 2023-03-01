@@ -1,7 +1,3 @@
-extern crate log;
-extern crate getopts;
-extern crate rand;
-
 use std::{cmp, char};
 use std::collections::{HashMap, hash_map};
 use std::fs::{File, self};
@@ -10,7 +6,7 @@ use std::io::prelude::*;
 use std::iter::repeat;
 use std::path::Path;
 
-use formatting::Context;
+use crate::formatting::Context;
 
 macro_rules! w {
     ($ctxt: expr, $($tt: tt)*) => {

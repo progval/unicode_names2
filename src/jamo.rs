@@ -1,8 +1,5 @@
 //! Algorithmic mapping for hangul syllables.
 
-#[cfg(feature = "no_std")]
-use core::prelude::*;
-
 // derived from Jamo.txt
 pub static CHOSEONG: &'static [&'static str] = &[
     "G", "GG", "N", "D", "DD", "R", "M", "B", "BB", "S", "SS", "", "J", "JJ", "C", "K", "T", "P",

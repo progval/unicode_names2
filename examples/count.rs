@@ -1,4 +1,3 @@
-extern crate unicode_names2;
 use std::char;
 
 // Count how many code points have names in the standard.

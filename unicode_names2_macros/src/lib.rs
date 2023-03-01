@@ -2,13 +2,10 @@
 
 #![crate_type = "dylib"]
 
-extern crate regex;
-
 extern crate unicode_names2;
 
 #[macro_use]
 extern crate syn;
-extern crate proc_macro;
 
 struct CharByName(syn::LitChar);
 

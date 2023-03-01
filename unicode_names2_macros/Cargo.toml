@@ -1,6 +1,7 @@
 [package]
 
 name = "unicode_names2_macros"
+edition = "2018"
 version = "0.6.0"
 authors = ["Huon Wilson <dbau.pp@gmail.com>",
            "Valentin Lorentz <progval+git@progval.net>"]

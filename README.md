@@ -6,8 +6,6 @@ Time and memory efficiently mapping characters to and from their
 Unicode 8.0 names, at runtime and compile-time.
 
 ```rust
-extern crate unicode_names2;
-
 fn main() {
     println!("☃ is called {}", unicode_names2::name('☃')); // SNOWMAN
     println!("{} is happy", unicode_names2::character("white smiling face")); // ☺

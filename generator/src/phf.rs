@@ -3,8 +3,6 @@
 //!
 //! Strongly inspired by https://github.com/sfackler/rust-phf
 
-extern crate time;
-
 use rand::prelude::{Rng, SeedableRng, SliceRandom, StdRng};
 use std::iter::repeat;
 

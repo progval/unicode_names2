@@ -1,11 +1,7 @@
-#[cfg(feature = "no_std")]
-use core::prelude::*;
-use core::{fmt, slice};
+use core::{slice, fmt};
 
-use generated::{
-    LEXICON, LEXICON_OFFSETS, LEXICON_ORDERED_LENGTHS, LEXICON_SHORT_LENGTHS, PHRASEBOOK,
-    PHRASEBOOK_SHORT,
-};
+use crate::generated::{PHRASEBOOK_SHORT, PHRASEBOOK, LEXICON_SHORT_LENGTHS, LEXICON_ORDERED_LENGTHS,
+                LEXICON_OFFSETS, LEXICON};
 
 #[derive(Clone)]
 pub struct IterStr {

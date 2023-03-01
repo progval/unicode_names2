@@ -1,5 +1,4 @@
-extern crate time;
-use std::rand::{StdRng, Rng, mod};
+use std::rand::{StdRng, Rng};
 use std::collections::HashMap;
 use std::hash::sip;
 

@@ -1,9 +1,6 @@
-#[cfg(feature = "no_std")]
-use core::prelude::*;
 use core::{slice, fmt};
 
-
-use generated::{PHRASEBOOK_SHORT, PHRASEBOOK, LEXICON_SHORT_LENGTHS, LEXICON_ORDERED_LENGTHS,
+use crate::generated::{PHRASEBOOK_SHORT, PHRASEBOOK, LEXICON_SHORT_LENGTHS, LEXICON_ORDERED_LENGTHS,
                 LEXICON_OFFSETS, LEXICON};
 
 #[derive(Clone)]

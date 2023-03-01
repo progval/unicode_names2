@@ -1,6 +1,7 @@
 [package]
 
 name = "unicode_names2_generator"
+edition = "2018"
 version = "0.0.1"
 authors = ["Huon Wilson <dbau.pp@gmail.com>"]
 
@@ -12,4 +13,3 @@ time = "0.1.10"
 log = "0"
 getopts = "0.2.21"
 rand = "0.8.5"
-rand_xorshift = "0.3.0"

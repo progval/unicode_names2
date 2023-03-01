@@ -36,4 +36,5 @@ path = "unicode_names2_macros"
 version = ">=0.3, <0.7"
 
 [dev-dependencies]
-rand = "0.5.1"
+rand = "0.8.5"
+rand_xorshift = "0.3.0"

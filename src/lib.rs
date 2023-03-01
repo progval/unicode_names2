@@ -451,10 +451,13 @@ static ASCII_UPPER_MAP: [u8; 256] = [
 mod tests {
     use std::prelude::v1::*;
     use std::char;
-    use rand::{seq, XorShiftRng, SeedableRng};
+    use rand::{
+        prelude::{SeedableRng, StdRng},
+        distributions::{Standard, Distribution},
+    };
 
     use test::{self, Bencher};
-    use super::{generated, name, character, is_cjk_unified_ideograph, jamo, Name};
+    use super::{generated, name, character, is_cjk_unified_ideograph, jamo};
 
     static DATA: &'static str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
                                                      "/data/UnicodeData.txt"));
@@ -620,18 +623,14 @@ mod tests {
     #[bench]
     fn name_10000_invalid(b: &mut Bencher) {
         // be consistent across runs, but avoid sequential/caching.
-        let mut rng: XorShiftRng = SeedableRng::from_seed([0xFF, 0x00, 0xFF, 0x00, 0xF0, 0xF0, 0xF0, 0xF0,
-                                                           0x00, 0xFF, 0x00, 0xFF, 0x0F, 0x0F, 0x0F, 0x0F]);
-        let chars = seq::sample_iter(&mut rng,
-                                     (0u32..0x10FFFF)
-                                     .filter_map(|x| {
-                                         match char::from_u32(x) {
-                                             Some(c) if name(c).is_none() => Some(c),
+        let mut rng = StdRng::seed_from_u64(0x12345678);
+        let chars: Vec<char> = Standard.sample_iter(&mut rng).take(10000)
+                                     .filter_map(|c| {
+                                         match c {
+                                             c if name(c).is_none() => Some(c),
                                              _ => None
                                          }
-                                     }),
-                                     10000)
-            .unwrap();
+                                     }).collect();
 
         b.iter(|| {
             for &c in chars.iter() {
@@ -662,16 +661,11 @@ mod tests {
     #[bench]
     fn character_10000(b: &mut Bencher) {
         // be consistent across runs, but avoid sequential/caching.
-        let mut rng: XorShiftRng = SeedableRng::from_seed([0xFF, 0x00, 0xFF, 0x00, 0xF0, 0xF0, 0xF0, 0xF0,
-                                                           0x00, 0xFF, 0x00, 0xFF, 0x0F, 0x0F, 0x0F, 0x0F]);
+        let mut rng = StdRng::seed_from_u64(0x12345678);
 
-        let names = seq::sample_iter(&mut rng,
-                                     (0u32..0x10FFFFF).filter_map(|x| char::from_u32(x).and_then(name)),
-                                     10000)
-            .unwrap()
-            .iter()
-            .map(|n: &Name| n.to_string())
-            .collect::<Vec<_>>();
+        let names: Vec<_> = Standard.sample_iter(&mut rng).take(10000).filter_map(name)
+            .map(|name| name.to_string())
+            .collect();
 
         b.iter(|| {
             for n in names.iter() {

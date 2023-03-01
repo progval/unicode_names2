@@ -1,5 +1,5 @@
 extern crate time;
-use std::rand::{XorShiftRng, Rng, mod};
+use std::rand::{StdRng, Rng, mod};
 use std::collections::HashMap;
 use std::hash::sip;
 
@@ -40,7 +40,7 @@ fn try_phf_table(values: &[String], lambda: uint, seed: u64) -> Option<(Vec<(u32
 
     let mut d1s = Vec::from_fn(table_len, |i| i as u32);
     let mut d2s = d1s.clone();
-    let mut rng: XorShiftRng = rand::random();
+    let mut rng: StdRng = rand::random();
 
     'next_bucket: for &(bkt_idx, ref bkt_keys) in buckets.iter() {
         rng.shuffle(d1s.as_mut_slice());

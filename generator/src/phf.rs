@@ -5,8 +5,7 @@
 
 extern crate time;
 
-use rand::{XorShiftRng, Rng, self};
-
+use rand::prelude::{Rng, SeedableRng, SliceRandom, StdRng};
 use std::iter::repeat;
 
 static NOVAL: char = '\0';
@@ -35,7 +34,7 @@ fn split(hash: u64) -> Hash {
 struct Hash { g: u32, f1: u32, f2: u32 }
 
 fn try_phf_table(values: &[(char, String)],
-                 lambda: usize, seed: u64) -> Option<(Vec<(u32, u32)>, Vec<char>)> {
+                 lambda: usize, seed: u64, rng: &mut StdRng) -> Option<(Vec<(u32, u32)>, Vec<char>)> {
 
     let hashes: Vec<_> =
         values.iter().map(|&(n, ref s)| (split(hash(s, seed)), n)).collect();
@@ -80,9 +79,8 @@ fn try_phf_table(values: &[(char, String)],
     // shuffle them.
     let mut d1s = (0..(table_len as u32)).collect::<Vec<_>>();
     let mut d2s = d1s.clone();
-    let mut rng: XorShiftRng = rand::random();
-    rng.shuffle(&mut d1s);
-    rng.shuffle(&mut d2s);
+    d1s.shuffle(rng);
+    d2s.shuffle(rng);
 
     // run through each bucket and try to fit the elements into the
     // array by choosing appropriate adjusting factors
@@ -132,14 +130,15 @@ fn try_phf_table(values: &[(char, String)],
 
 pub fn create_phf(data: &[(char, String)], lambda: usize,
                   max_tries: usize) -> (u64, Vec<(u32, u32)>, Vec<char>) {
+    let mut rng = StdRng::seed_from_u64(0xf0f0f0f0);
     let start = time::precise_time_s();
 
     for i in 0..(max_tries) {
         let my_start = time::precise_time_s();
         println!("PHF #{}: starting {:.2}", i, my_start - start);
 
-        let seed = rand::random();
-        match try_phf_table(data, lambda, seed) {
+        let seed = rng.gen();
+        match try_phf_table(data, lambda, seed, &mut rng) {
             Some((disp, map)) => {
                 let end = time::precise_time_s();
                 println!("PHF took: total {:.2} s, successive {:.2} s",

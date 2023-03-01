@@ -11,4 +11,5 @@ unstable = []
 time = "0.1.10"
 log = "0"
 getopts = "0.2.21"
-rand = "0.3.14"
+rand = "0.8.5"
+rand_xorshift = "0.3.0"

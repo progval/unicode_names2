@@ -1,6 +1,8 @@
-use std::rand::{StdRng, Rng};
-use std::collections::HashMap;
-use std::hash::sip;
+use std::{
+    rand::{StdRng, Rng},
+    collections::HashMap,
+    hash::sip
+};
 
 static NOVAL: u32 = 0xFFFF_FFFF;
 

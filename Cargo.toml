@@ -23,8 +23,10 @@ O(length of name).)
 
 exclude = [
         "data/*",
-        "generator/*",
 ]
+
+[workspace]
+members = [".", "generator"]
 
 [features]
 default = []
@@ -39,3 +41,6 @@ version = ">=0.3, <0.7"
 [dev-dependencies]
 rand = "0.8.5"
 rand_xorshift = "0.3.0"
+
+[build-dependencies]
+unicode_names2_generator = { path = "generator" }

@@ -1,11 +1,12 @@
 use formatting::Context;
-use std::collections::{hash_map, HashMap};
-use std::fs::{self, File};
-use std::io::prelude::*;
-use std::io::{self, BufWriter};
-use std::iter::repeat;
-use std::path::Path;
-use std::{char, cmp};
+use std::{
+    char, cmp,
+    collections::{hash_map, HashMap},
+    fs::{self, File},
+    io::{self, prelude::*, BufWriter},
+    iter::repeat,
+    path::Path,
+};
 
 macro_rules! w {
     ($ctxt: expr, $($tt: tt)*) => {

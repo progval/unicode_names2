@@ -1,5 +1,4 @@
-use std::fmt::Debug;
-use std::io::prelude::*;
+use std::{fmt::Debug, io::prelude::*};
 
 static LINE_LIMIT: usize = 95;
 

@@ -75,9 +75,13 @@ use generated::{
 use generated_phf as phf;
 
 #[allow(dead_code)]
-mod generated;
+mod generated {
+    include!(concat!(env!("OUT_DIR"), "/generated.rs"));
+}
 #[allow(dead_code)]
-mod generated_phf;
+mod generated_phf {
+    include!(concat!(env!("OUT_DIR"), "/generated_phf.rs"));
+}
 #[allow(dead_code)]
 mod jamo;
 

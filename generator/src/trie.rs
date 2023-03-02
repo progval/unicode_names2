@@ -1,5 +1,4 @@
-use std::collections::hash_map::{self, Entry};
-use std::collections::HashMap;
+use std::collections::hash_map::{self, Entry, HashMap};
 
 pub struct Trie {
     children: HashMap<u8, Trie>,

@@ -40,7 +40,7 @@ impl syn::parse::Parse for StringWithCharNames {
         let mut errors = Vec::new();
         let new = names_re.replace_all(&string.value(), |c: &regex::Captures| {
             let full = c.at(0).unwrap();
-            if !full.ends_with("}") {
+            if !full.ends_with('}') {
                 errors.push(format!("unclosed escape in `named!`: {}", full));
             } else {
                 let name = c.at(1).unwrap();
@@ -54,7 +54,7 @@ impl syn::parse::Parse for StringWithCharNames {
             // failed :(
             String::new()
         });
-        if errors.len() > 0 {
+        if !errors.is_empty() {
             // TODO: show all errors at once?
             Err(syn::Error::new(string.span(), errors.get(0).unwrap()))
         } else {

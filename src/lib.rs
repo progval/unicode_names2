@@ -9,11 +9,9 @@
 //! name)`).
 //!
 //! ```rust
-//! fn main() {
 //!     println!("☃ is called {:?}", unicode_names2::name('☃')); // SNOWMAN
 //!     println!("{:?} is happy", unicode_names2::character("white smiling face")); // ☺
 //!     // (NB. case insensitivity)
-//! }
 //! ```
 //!
 //! [**Source**](https://github.com/ProgVal/unicode_names2).
@@ -75,10 +73,14 @@ use generated::{
 use generated_phf as phf;
 
 #[allow(dead_code)]
+#[rustfmt::skip]
+#[allow(clippy::all)]
 mod generated {
     include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 }
 #[allow(dead_code)]
+#[rustfmt::skip]
+#[allow(clippy::all)]
 mod generated_phf {
     include!(concat!(env!("OUT_DIR"), "/generated_phf.rs"));
 }
@@ -87,8 +89,8 @@ mod jamo;
 
 mod iter_str;
 
-static HANGUL_SYLLABLE_PREFIX: &'static str = "HANGUL SYLLABLE ";
-static CJK_UNIFIED_IDEOGRAPH_PREFIX: &'static str = "CJK UNIFIED IDEOGRAPH-";
+static HANGUL_SYLLABLE_PREFIX: &str = "HANGUL SYLLABLE ";
+static CJK_UNIFIED_IDEOGRAPH_PREFIX: &str = "CJK UNIFIED IDEOGRAPH-";
 
 fn is_cjk_unified_ideograph(ch: char) -> bool {
     generated::CJK_IDEOGRAPH_RANGES
@@ -105,6 +107,7 @@ fn is_cjk_unified_ideograph(ch: char) -> bool {
 pub struct Name {
     data: Name_,
 }
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Clone)]
 enum Name_ {
     Plain(iter_str::IterStr),
@@ -112,6 +115,7 @@ enum Name_ {
     Hangul(Hangul),
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Copy)]
 struct CJK {
     emit_prefix: bool,
@@ -138,6 +142,7 @@ impl Clone for Hangul {
     }
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl Name {
     /// The number of bytes in the name.
     ///
@@ -170,7 +175,7 @@ impl Iterator for Name {
                     .map(|digit| *digit as usize)
                     .map(|d| {
                         state.idx += 1;
-                        static DIGITS: &'static str = "0123456789ABCDEF";
+                        static DIGITS: &str = "0123456789ABCDEF";
                         &DIGITS[d..d + 1]
                     })
             }
@@ -241,7 +246,7 @@ pub fn name(c: char) -> Option<Name> {
         (PHRASEBOOK_OFFSETS1[cc >> PHRASEBOOK_OFFSET_SHIFT] as usize) << PHRASEBOOK_OFFSET_SHIFT;
 
     let mask = (1 << PHRASEBOOK_OFFSET_SHIFT) - 1;
-    let offset = PHRASEBOOK_OFFSETS2[offset + (cc & mask) as usize];
+    let offset = PHRASEBOOK_OFFSETS2[offset + (cc & mask)];
     if offset == 0 {
         if is_cjk_unified_ideograph(c) {
             // write the hex number out right aligned in this array.
@@ -262,7 +267,7 @@ pub fn name(c: char) -> Option<Name> {
                 data: Name_::CJK(CJK {
                     emit_prefix: true,
                     idx: data_start,
-                    data: data,
+                    data,
                 }),
             })
         } else {
@@ -378,7 +383,7 @@ pub fn character(search_name: &str) -> Option<char> {
     }
 
     // get the parts of the hash...
-    let (g, f1, f2) = split(fnv_hash(search_name.iter().map(|x| *x)));
+    let (g, f1, f2) = split(fnv_hash(search_name.iter().copied()));
     // ...and the appropriate displacements...
     let (d1, d2) = phf::NAME2CODE_DISP[g as usize % phf::NAME2CODE_DISP.len()];
 

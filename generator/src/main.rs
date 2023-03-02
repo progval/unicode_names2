@@ -40,17 +40,13 @@ fn main() {
 
     let truncate = matches
         .opt_str("truncate")
-        .map(|s| s.parse().ok().expect("truncate should be an integer"));
+        .map(|s| s.parse().expect("truncate should be an integer"));
 
     let lambda = matches.opt_str("phf-lambda");
     let tries = matches.opt_str("phf-tries");
     if do_phf {
-        let lambda = lambda
-            .map(|s| s.parse().ok().expect("invalid -l"))
-            .unwrap_or(3);
-        let tries = tries
-            .map(|s| s.parse().ok().expect("invalid -t"))
-            .unwrap_or(2);
+        let lambda = lambda.map(|s| s.parse().expect("invalid -l")).unwrap_or(3);
+        let tries = tries.map(|s| s.parse().expect("invalid -t")).unwrap_or(2);
         unicode_names2_generator::generate_phf(path, truncate, lambda, tries);
     } else {
         if lambda.is_some() {

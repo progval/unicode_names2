@@ -63,7 +63,7 @@ impl Iterator for IterStr {
                 let offset = LEXICON_OFFSETS[idx] as usize;
                 &LEXICON[offset..offset + length]
             };
-            self.phrasebook = if is_end { (&[]).iter() } else { tmp };
+            self.phrasebook = if is_end { ([]).iter() } else { tmp };
             ret
         })
     }

@@ -38,6 +38,7 @@ struct Hash {
     f2: u32,
 }
 
+#[allow(clippy::type_complexity)]
 fn try_phf_table(
     values: &[(char, &str)],
     lambda: usize,
@@ -46,7 +47,7 @@ fn try_phf_table(
 ) -> Option<(Vec<(u32, u32)>, Vec<char>)> {
     let hashes: Vec<_> = values
         .iter()
-        .map(|&(n, ref s)| (split(hash(s, seed)), n))
+        .map(|&(n, s)| (split(hash(s, seed)), n))
         .collect();
 
     let table_len = hashes.len();
@@ -60,7 +61,7 @@ fn try_phf_table(
     }
 
     // place the large buckets first.
-    buckets.sort_by(|&(_, ref a), &(_, ref b)| b.len().cmp(&a.len()));
+    buckets.sort_by(|(_, a), (_, b)| b.len().cmp(&a.len()));
 
     // this stores the final computed backing vector, i.e. getting the
     // value for `foo` is "just" `map[displace(hash(foo))]`, where
@@ -151,17 +152,14 @@ pub fn create_phf(
         println!("PHF #{}: starting {:.2}", i, my_start - start);
 
         let seed = rng.gen();
-        match try_phf_table(data, lambda, seed, &mut rng) {
-            Some((disp, map)) => {
-                let end = time::precise_time_s();
-                println!(
-                    "PHF took: total {:.2} s, successive {:.2} s",
-                    end - start,
-                    end - my_start
-                );
-                return (seed, disp, map);
-            }
-            None => {}
+        if let Some((disp, map)) = try_phf_table(data, lambda, seed, &mut rng) {
+            let end = time::precise_time_s();
+            println!(
+                "PHF took: total {:.2} s, successive {:.2} s",
+                end - start,
+                end - my_start
+            );
+            return (seed, disp, map);
         }
     }
     panic!(

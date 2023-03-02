@@ -1,21 +1,21 @@
 //! Algorithmic mapping for hangul syllables.
 
 // derived from Jamo.txt
-pub static CHOSEONG: &'static [&'static str] = &[
+pub static CHOSEONG: &[&str] = &[
     "G", "GG", "N", "D", "DD", "R", "M", "B", "BB", "S", "SS", "", "J", "JJ", "C", "K", "T", "P",
     "H",
 ];
-pub static JUNGSEONG: &'static [&'static str] = &[
+pub static JUNGSEONG: &[&str] = &[
     "A", "AE", "YA", "YAE", "EO", "E", "YEO", "YE", "O", "WA", "WAE", "OE", "YO", "U", "WEO", "WE",
     "WI", "YU", "EU", "YI", "I",
 ];
-pub static JONGSEONG: &'static [&'static str] = &[
+pub static JONGSEONG: &[&str] = &[
     "", "G", "GG", "GS", "N", "NJ", "NH", "D", "L", "LG", "LM", "LB", "LS", "LT", "LP", "LH", "M",
     "B", "BS", "S", "SS", "NG", "J", "C", "K", "T", "P", "H",
 ];
 
 pub fn is_hangul_syllable(c: char) -> bool {
-    '\u{AC00}' <= c && c <= '\u{D7A3}'
+    ('\u{AC00}'..='\u{D7A3}').contains(&c)
 }
 
 pub fn syllable_decomposition(c: char) -> Option<(u8, u8, u8)> {
@@ -32,15 +32,15 @@ pub fn syllable_decomposition(c: char) -> Option<(u8, u8, u8)> {
     Some((choseong as u8, jungseong as u8, jongseong as u8))
 }
 
-fn slice_shift_byte<'a>(a: &'a [u8]) -> (Option<u8>, &'a [u8]) {
-    if a.len() >= 1 {
+fn slice_shift_byte(a: &[u8]) -> (Option<u8>, &[u8]) {
+    if !a.is_empty() {
         (Some(a[0]), &a[1..])
     } else {
         (None, a)
     }
 }
 
-pub fn slice_shift_choseong<'a>(name: &'a [u8]) -> (Option<u32>, &'a [u8]) {
+pub fn slice_shift_choseong(name: &[u8]) -> (Option<u32>, &[u8]) {
     match slice_shift_byte(name) {
         (Some(b'G'), name) => match slice_shift_byte(name) {
             (Some(b'G'), name) => (Some(1), name),
@@ -74,7 +74,7 @@ pub fn slice_shift_choseong<'a>(name: &'a [u8]) -> (Option<u32>, &'a [u8]) {
     }
 }
 
-pub fn slice_shift_jungseong<'a>(name: &'a [u8]) -> (Option<u32>, &'a [u8]) {
+pub fn slice_shift_jungseong(name: &[u8]) -> (Option<u32>, &[u8]) {
     match slice_shift_byte(name) {
         (Some(b'A'), name) => match slice_shift_byte(name) {
             (Some(b'E'), name) => (Some(1), name),
@@ -121,7 +121,7 @@ pub fn slice_shift_jungseong<'a>(name: &'a [u8]) -> (Option<u32>, &'a [u8]) {
     }
 }
 
-pub fn slice_shift_jongseong<'a>(name: &'a [u8]) -> (Option<u32>, &'a [u8]) {
+pub fn slice_shift_jongseong(name: &[u8]) -> (Option<u32>, &[u8]) {
     match slice_shift_byte(name) {
         (Some(b'G'), name) => match slice_shift_byte(name) {
             (Some(b'G'), name) => (Some(2), name),

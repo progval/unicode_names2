@@ -76,15 +76,12 @@ impl<'a> Iterator for Items<'a> {
     type Item = (usize, Vec<u8>, Option<usize>);
     fn next(&mut self) -> Option<(usize, Vec<u8>, Option<usize>)> {
         'outer: loop {
-            match self.current {
-                Some(t) => {
-                    self.current = None;
-                    self.stack.push(t.children.iter());
-                    if t.count > 0 {
-                        return Some((t.count, self.parents.clone(), t.offset));
-                    }
+            if let Some(t) = self.current {
+                self.current = None;
+                self.stack.push(t.children.iter());
+                if t.count > 0 {
+                    return Some((t.count, self.parents.clone(), t.offset));
                 }
-                None => {}
             }
 
             loop {

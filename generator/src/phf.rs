@@ -39,7 +39,7 @@ struct Hash {
 }
 
 fn try_phf_table(
-    values: &[(char, String)],
+    values: &[(char, &str)],
     lambda: usize,
     seed: u64,
     rng: &mut StdRng,
@@ -139,7 +139,7 @@ fn try_phf_table(
 }
 
 pub fn create_phf(
-    data: &[(char, String)],
+    data: &[(char, &str)],
     lambda: usize,
     max_tries: usize,
 ) -> (u64, Vec<(u32, u32)>, Vec<char>) {

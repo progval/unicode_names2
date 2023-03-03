@@ -1,10 +1,10 @@
-use std::{cmp, char};
-use std::collections::{HashMap, hash_map};
-use std::fs::{File, self};
-use std::io::{BufReader, BufWriter, self};
+use std::collections::{hash_map, HashMap};
+use std::fs::{self, File};
 use std::io::prelude::*;
+use std::io::{self, BufReader, BufWriter};
 use std::iter::repeat;
 use std::path::Path;
+use std::{char, cmp};
 
 use crate::formatting::Context;
 
@@ -30,15 +30,19 @@ fn get_table_data() -> (Vec<(char, String)>, Vec<(char, char)>) {
         ($line: expr) => {{
             let line = $line;
             let mut splits = line.split(';');
-            let cp = splits.next().and_then(|s| u32::from_str_radix(s, 16).ok())
+            let cp = splits
+                .next()
+                .and_then(|s| u32::from_str_radix(s, 16).ok())
                 .unwrap_or_else(|| panic!("invalid {}", line));
             let c = match char::from_u32(cp) {
                 None => continue,
                 Some(c) => c,
             };
-            let name = splits.next().unwrap_or_else(|| panic!("missing name {}", line));
+            let name = splits
+                .next()
+                .unwrap_or_else(|| panic!("missing name {}", line));
             (c, name)
-        }}
+        }};
     }
 
     let r = BufReader::new(File::open(Path::new(IN_FILE)).unwrap());
@@ -50,7 +54,7 @@ fn get_table_data() -> (Vec<(char, String)>, Vec<(char, char)>) {
     loop {
         let l = match iter.next() {
             Some(l) => l,
-            None => break
+            None => break,
         };
 
         let (cp, name) = extract!(l.trim());
@@ -62,8 +66,7 @@ fn get_table_data() -> (Vec<(char, String)>, Vec<(char, char)>) {
                 // should be CJK Ideograph ..., Last
                 let line2 = iter.next().expect("unclosed ideograph range");
                 let (cp2, name2) = extract!(line2.trim());
-                assert_eq!(&*name.replace("First", "Last"),
-                           &name2[1..name2.len() - 1]);
+                assert_eq!(&*name.replace("First", "Last"), &name2[1..name2.len() - 1]);
 
                 cjk_ideograph_ranges.push((cp, cp2));
             } else if name.starts_with("Hangul Syllable") {
@@ -92,9 +95,9 @@ fn write_cjk_ideograph_ranges(ctxt: &mut Context, ranges: &[(char, char)]) {
 /// Construct a huge string storing the text data, and return it,
 /// along with information about the position and frequency of the
 /// constituent words of the input.
-fn create_lexicon_and_offsets(mut codepoint_names: Vec<(char, String)>) -> (String,
-                                                                            Vec<(usize, Vec<u8>,
-                                                                                 usize)>) {
+fn create_lexicon_and_offsets(
+    mut codepoint_names: Vec<(char, String)>,
+) -> (String, Vec<(usize, Vec<u8>, usize)>) {
     codepoint_names.sort_by(|a, b| a.1.len().cmp(&b.1.len()).reverse());
 
     // a trie of all the suffixes of the data,
@@ -107,7 +110,7 @@ fn create_lexicon_and_offsets(mut codepoint_names: Vec<(char, String)>) -> (Stri
     for &(_, ref name) in codepoint_names.iter() {
         for n in util::split(name, SPLITTERS) {
             if n.len() == 1 && SPLITTERS.contains(&n.as_bytes()[0]) {
-                continue
+                continue;
             }
 
             let (already, previous_was_exact) = t.insert(n.bytes(), None, false);
@@ -132,15 +135,23 @@ fn create_lexicon_and_offsets(mut codepoint_names: Vec<(char, String)>) -> (Stri
                         // once we've found a string that's already
                         // been inserted, we know all suffixes will've
                         // been inserted too.
-                        break
+                        break;
                     }
                 }
             }
         }
     }
-    let words: Vec<_> = t.iter().map(|(a, b, c)| (a, b, c.expect("unset offset?"))).collect();
-    println!("Lexicon: # words {}, byte size {}, with {} ({} bytes) non-exact matches",
-             words.len(), output.len(), substring_overlaps, substring_o_bytes);
+    let words: Vec<_> = t
+        .iter()
+        .map(|(a, b, c)| (a, b, c.expect("unset offset?")))
+        .collect();
+    println!(
+        "Lexicon: # words {}, byte size {}, with {} ({} bytes) non-exact matches",
+        words.len(),
+        output.len(),
+        substring_overlaps,
+        substring_o_bytes
+    );
     (output, words)
 }
 
@@ -173,8 +184,8 @@ fn bin_data(dat: &[u32]) -> (Vec<u32>, Vec<u32>, usize) {
             t1.push((index >> shift) as u32)
         }
 
-        let my_size = t1.len() * util::smallest_type(t1.iter().copied()) +
-            t2.len() * util::smallest_type(t2.iter().copied());
+        let my_size = t1.len() * util::smallest_type(t1.iter().copied())
+            + t2.len() * util::smallest_type(t2.iter().copied());
         println!("binning: shift {}, size {}", shift, my_size);
         if my_size < smallest {
             data = (t1, t2, shift);
@@ -187,7 +198,10 @@ fn bin_data(dat: &[u32]) -> (Vec<u32>, Vec<u32>, usize) {
         let (ref t1, ref t2, shift) = data;
         let mask = (1 << shift) - 1;
         for (i, &elem) in dat.iter().enumerate() {
-            assert_eq!(elem, t2[((t1[i >> shift] << shift) + (i as u32 & mask)) as usize])
+            assert_eq!(
+                elem,
+                t2[((t1[i >> shift] << shift) + (i as u32 & mask)) as usize]
+            )
         }
     }
 
@@ -252,7 +266,9 @@ fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: Vec<(char, String)>
             previous_len = len;
         }
 
-        assert!(word_encodings.insert(word, vec![hi as u32, lo as u32]).is_none());
+        assert!(word_encodings
+            .insert(word, vec![hi as u32, lo as u32])
+            .is_none());
     }
     // don't forget the last one.
     lexicon_ordered_lengths.push((lexicon_offsets.len(), previous_len));
@@ -273,7 +289,9 @@ fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: Vec<(char, String)>
 
         let mut last_len = 0;
         for w in util::split(name, SPLITTERS) {
-            let data = word_encodings.get(w.as_bytes()).expect(concat!("option on ", line!()));
+            let data = word_encodings
+                .get(w.as_bytes())
+                .expect(concat!("option on ", line!()));
             last_len = data.len();
             // info!("{}: '{}' {}", name, w, data);
 
@@ -290,40 +308,62 @@ fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: Vec<(char, String)>
     // compress the offsets, hopefully collapsing all the 0's.
     let (t1, t2, shift) = bin_data(&phrasebook_offsets);
 
-    w!(ctxt, "pub const MAX_NAME_LENGTH: usize = {};\n", longest_name);
+    w!(
+        ctxt,
+        "pub const MAX_NAME_LENGTH: usize = {};\n",
+        longest_name
+    );
     ctxt.write_plain_string("LEXICON", &lexicon_string);
     ctxt.write_debugs("LEXICON_OFFSETS", "u16", &lexicon_offsets);
-    ctxt.write_debugs("LEXICON_SHORT_LENGTHS", "u8",
-                        &lexicon_short_lengths);
-    ctxt.write_debugs("LEXICON_ORDERED_LENGTHS", "(usize, u8)",
-                     &lexicon_ordered_lengths);
+    ctxt.write_debugs("LEXICON_SHORT_LENGTHS", "u8", &lexicon_short_lengths);
+    ctxt.write_debugs(
+        "LEXICON_ORDERED_LENGTHS",
+        "(usize, u8)",
+        &lexicon_ordered_lengths,
+    );
     w!(ctxt, "pub static PHRASEBOOK_SHORT: u8 = {};\n", short);
-    ctxt.write_debugs("PHRASEBOOK", "u8",
-                        &phrasebook);
-    w!(ctxt, "pub static PHRASEBOOK_OFFSET_SHIFT: usize = {};\n", shift);
-    ctxt.write_debugs("PHRASEBOOK_OFFSETS1",
-                        &util::smallest_u(t1.iter().copied()),
-                        &t1);
-    ctxt.write_debugs("PHRASEBOOK_OFFSETS2",
-                        &util::smallest_u(t2.iter().copied()),
-                        &t2);
+    ctxt.write_debugs("PHRASEBOOK", "u8", &phrasebook);
+    w!(
+        ctxt,
+        "pub static PHRASEBOOK_OFFSET_SHIFT: usize = {};\n",
+        shift
+    );
+    ctxt.write_debugs(
+        "PHRASEBOOK_OFFSETS1",
+        &util::smallest_u(t1.iter().copied()),
+        &t1,
+    );
+    ctxt.write_debugs(
+        "PHRASEBOOK_OFFSETS2",
+        &util::smallest_u(t2.iter().copied()),
+        &t2,
+    );
 }
 
 fn main() {
     let mut opts = getopts::Options::new();
     opts.optflag("p", "phf", "compute the name -> codepoint PHF");
     opts.optopt("l", "phf-lambda", "the lambda to use for PHF", "N");
-    opts.optopt("t", "phf-tries", "the number of attempts when computing PHF", "N");
+    opts.optopt(
+        "t",
+        "phf-tries",
+        "the number of attempts when computing PHF",
+        "N",
+    );
     opts.optflag("s", "silent", "don't write anything to files");
     opts.optopt("", "truncate", "only handle the first N", "N");
     opts.optflag("h", "help", "print this message");
     let matches = match opts.parse(std::env::args().skip(1)) {
-        Ok(m) => m, Err(f) => panic!("{}", f.to_string()),
+        Ok(m) => m,
+        Err(f) => panic!("{}", f.to_string()),
     };
 
     if matches.opt_present("h") {
-        println!("{}", opts.usage("generate compressed codepoint <-> name tables"));
-        return
+        println!(
+            "{}",
+            opts.usage("generate compressed codepoint <-> name tables")
+        );
+        return;
     }
     let do_phf = matches.opt_present("phf");
     let file = if matches.opt_present("s") {
@@ -336,39 +376,50 @@ fn main() {
 
     let mut ctxt = Context {
         out: match file {
-            Some(p) => Box::new(BufWriter::new(File::create(&p.with_extension("tmp")).unwrap()))
-                as Box<dyn Write>,
-            None => Box::new(io::sink()) as Box<dyn Write>
-        }
+            Some(p) => Box::new(BufWriter::new(
+                File::create(&p.with_extension("tmp")).unwrap(),
+            )) as Box<dyn Write>,
+            None => Box::new(io::sink()) as Box<dyn Write>,
+        },
     };
-    ctxt.out.write(b"// autogenerated by generator.rs\n").unwrap();
+    ctxt.out
+        .write(b"// autogenerated by generator.rs\n")
+        .unwrap();
 
     let lambda = matches.opt_str("phf-lambda");
     let tries = matches.opt_str("phf-tries");
 
     let (mut codepoint_names, cjk) = get_table_data();
-    match matches.opt_str("truncate").map(
-            |s| s.parse().ok().expect("truncate should be an integer")) {
+    match matches
+        .opt_str("truncate")
+        .map(|s| s.parse().ok().expect("truncate should be an integer"))
+    {
         Some(n) => codepoint_names.truncate(n),
         None => {}
     }
 
     if do_phf {
-        let (n, disps, data) =
-            phf::create_phf(&codepoint_names,
-                            lambda.map(|s| s.parse().ok().expect("invalid -l")).unwrap_or(3),
-                            tries.map(|s| s.parse().ok().expect("invalid -t")).unwrap_or(2));
-
+        let (n, disps, data) = phf::create_phf(
+            &codepoint_names,
+            lambda
+                .map(|s| s.parse().ok().expect("invalid -l"))
+                .unwrap_or(3),
+            tries
+                .map(|s| s.parse().ok().expect("invalid -t"))
+                .unwrap_or(2),
+        );
 
         w!(ctxt, "pub static NAME2CODE_N: u64 = {};\n", n);
-        ctxt.write_debugs("NAME2CODE_DISP",
-                         "(u16, u16)",
-                         &disps);
+        ctxt.write_debugs("NAME2CODE_DISP", "(u16, u16)", &disps);
 
         ctxt.write_debugs("NAME2CODE_CODE", "char", &data);
     } else {
-        if lambda.is_some() { println!("-l/--phf-lambda only applies with --phf") }
-        if tries.is_some() { println!("-t/--phf-tries only applies with --phf") }
+        if lambda.is_some() {
+            println!("-l/--phf-lambda only applies with --phf")
+        }
+        if tries.is_some() {
+            println!("-t/--phf-tries only applies with --phf")
+        }
 
         write_cjk_ideograph_ranges(&mut ctxt, &cjk);
         ctxt.out.write(b"\n").unwrap();

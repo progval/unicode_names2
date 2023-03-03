@@ -1,7 +1,9 @@
-use core::{slice, fmt};
+use core::{fmt, slice};
 
-use crate::generated::{PHRASEBOOK_SHORT, PHRASEBOOK, LEXICON_SHORT_LENGTHS, LEXICON_ORDERED_LENGTHS,
-                LEXICON_OFFSETS, LEXICON};
+use crate::generated::{
+    LEXICON, LEXICON_OFFSETS, LEXICON_ORDERED_LENGTHS, LEXICON_SHORT_LENGTHS, PHRASEBOOK,
+    PHRASEBOOK_SHORT,
+};
 
 #[derive(Clone)]
 pub struct IterStr {

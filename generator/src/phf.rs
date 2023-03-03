@@ -11,7 +11,10 @@ static NOVAL: char = '\0';
 /// FNV
 fn hash(s: &str, h: u64) -> u64 {
     let mut g = 0xcbf29ce484222325 ^ h;
-    for b in s.bytes() { g ^= b as u64; g = g.wrapping_mul(0x100000001b3); }
+    for b in s.bytes() {
+        g ^= b as u64;
+        g = g.wrapping_mul(0x100000001b3);
+    }
     g
 }
 
@@ -24,18 +27,27 @@ fn split(hash: u64) -> Hash {
     Hash {
         g: (hash & mask) as u32,
         f1: ((hash >> bits) & mask) as u32,
-        f2: ((hash >> (2 * bits)) & mask) as u32
+        f2: ((hash >> (2 * bits)) & mask) as u32,
     }
 }
 
 #[derive(Copy, Clone)]
-struct Hash { g: u32, f1: u32, f2: u32 }
+struct Hash {
+    g: u32,
+    f1: u32,
+    f2: u32,
+}
 
-fn try_phf_table(values: &[(char, String)],
-                 lambda: usize, seed: u64, rng: &mut StdRng) -> Option<(Vec<(u32, u32)>, Vec<char>)> {
-
-    let hashes: Vec<_> =
-        values.iter().map(|&(n, ref s)| (split(hash(s, seed)), n)).collect();
+fn try_phf_table(
+    values: &[(char, String)],
+    lambda: usize,
+    seed: u64,
+    rng: &mut StdRng,
+) -> Option<(Vec<(u32, u32)>, Vec<char>)> {
+    let hashes: Vec<_> = values
+        .iter()
+        .map(|&(n, ref s)| (split(hash(s, seed)), n))
+        .collect();
 
     let table_len = hashes.len();
     let buckets_len = (table_len + lambda - 1) / lambda;
@@ -101,7 +113,7 @@ fn try_phf_table(values: &[(char, String)],
                     if map[idx] != NOVAL || try_map[idx] == generation {
                         // nope, this one is taken, so this pair of
                         // displacements doesn't work.
-                        continue 'next_disp
+                        continue 'next_disp;
                     }
                     try_map[idx] = generation;
                     values_to_add.push((idx, cp));
@@ -113,21 +125,24 @@ fn try_phf_table(values: &[(char, String)],
                 for &(idx, cp) in values_to_add.iter() {
                     map[idx] = cp
                 }
-                continue 'next_bucket
+                continue 'next_bucket;
             }
         }
 
         // if we're here, we ran through all displacements for a
         // bucket and didn't find one that worked, so we can't make
         // the hash table.
-        return None
+        return None;
     }
 
     Some((disps, map))
 }
 
-pub fn create_phf(data: &[(char, String)], lambda: usize,
-                  max_tries: usize) -> (u64, Vec<(u32, u32)>, Vec<char>) {
+pub fn create_phf(
+    data: &[(char, String)],
+    lambda: usize,
+    max_tries: usize,
+) -> (u64, Vec<(u32, u32)>, Vec<char>) {
     let mut rng = StdRng::seed_from_u64(0xf0f0f0f0);
     let start = time::precise_time_s();
 
@@ -139,13 +154,20 @@ pub fn create_phf(data: &[(char, String)], lambda: usize,
         match try_phf_table(data, lambda, seed, &mut rng) {
             Some((disp, map)) => {
                 let end = time::precise_time_s();
-                println!("PHF took: total {:.2} s, successive {:.2} s",
-                         end - start, end - my_start);
-                return (seed, disp, map)
+                println!(
+                    "PHF took: total {:.2} s, successive {:.2} s",
+                    end - start,
+                    end - my_start
+                );
+                return (seed, disp, map);
             }
             None => {}
         }
     }
-    panic!("could not create a length {} PHF with {}, {}",
-          data.len(), lambda, max_tries);
+    panic!(
+        "could not create a length {} PHF with {}, {}",
+        data.len(),
+        lambda,
+        max_tries
+    );
 }

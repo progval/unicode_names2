@@ -416,12 +416,12 @@ pub fn character(search_name: &str) -> Option<char> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::prelude::v1::*;
-    use std::char;
     use rand::{
         distributions::{Distribution, Standard},
         prelude::{SeedableRng, StdRng},
     };
+    use std::char;
+    use std::prelude::v1::*;
 
     extern crate test;
 

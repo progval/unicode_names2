@@ -1,8 +1,8 @@
-
-
 pub fn smallest_index(n: usize) -> usize {
     for &x in [8, 16, 32].iter() {
-        if n < (1 << x) { return x / 8 }
+        if n < (1 << x) {
+            return x / 8;
+        }
     }
     64
 }
@@ -31,12 +31,12 @@ impl<'a, 'b> Iterator for Split<'a, 'b> {
     type Item = &'a str;
     fn next(&mut self) -> Option<&'a str> {
         if self.done {
-            return None
+            return None;
         } else if self.s.is_empty() {
             self.done = true;
-            return Some("")
+            return Some("");
         } else if !self.pending.is_empty() {
-            return Some(std::mem::take(&mut self.pending))
+            return Some(std::mem::take(&mut self.pending));
         }
 
         for (i, b) in self.s.bytes().enumerate() {
@@ -44,10 +44,10 @@ impl<'a, 'b> Iterator for Split<'a, 'b> {
                 let ret = &self.s[..i];
                 // dont include the space, but include everything else on the next step
                 if b != b' ' {
-                    self.pending = &self.s[i..i+1]
+                    self.pending = &self.s[i..i + 1]
                 }
-                self.s = &self.s[i+1..];
-                return Some(ret)
+                self.s = &self.s[i + 1..];
+                return Some(ret);
             }
         }
         // trailing data
@@ -58,13 +58,14 @@ impl<'a, 'b> Iterator for Split<'a, 'b> {
 
 #[test]
 fn test_split() {
-    let tests: &[(&str, &[&str])] =
-        &[("a", &["a"]),
-          ("a b", &["a", "b"]),
-          (" a b ", &["", "a", "b", ""]),
-          ("a-b", &["a", "-", "b"]),
-          ("a- b", &["a", "-", "", "b"]),
-          ("a -b", &["a", "", "-", "b"])];
+    let tests: &[(&str, &[&str])] = &[
+        ("a", &["a"]),
+        ("a b", &["a", "b"]),
+        (" a b ", &["", "a", "b", ""]),
+        ("a-b", &["a", "-", "b"]),
+        ("a- b", &["a", "-", "", "b"]),
+        ("a -b", &["a", "", "-", "b"]),
+    ];
 
     for &(s, v) in tests.iter() {
         assert_eq!(split(s, b"-").collect::<Vec<&str>>(), v)

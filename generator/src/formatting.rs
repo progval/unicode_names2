@@ -4,12 +4,14 @@ use std::io::prelude::*;
 static LINE_LIMIT: usize = 95;
 
 pub struct Context {
-    pub out: Box<dyn Write+'static>
+    pub out: Box<dyn Write + 'static>,
 }
 
 impl Context {
     pub fn write_array<T, F>(&mut self, name: &str, ty: &str, elements: &[T], format: F)
-            where F: Fn(&T) -> String{
+    where
+        F: Fn(&T) -> String,
+    {
         w!(self, "pub static {}: &'static [{}] = &[", name, ty);
 
         let mut width = LINE_LIMIT;

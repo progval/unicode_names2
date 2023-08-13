@@ -9,7 +9,7 @@ authors = ["Huon Wilson <dbau.pp@gmail.com>"]
 unstable = []
 
 [dependencies]
-time = "0.1.10"
+time = "0.3"
 log = "0"
 getopts = "0.2.21"
 rand = "0.8.5"

@@ -38,12 +38,13 @@ impl syn::parse::Parse for StringWithCharNames {
         let names_re = regex::Regex::new(r"\\N\{(.*?)(?:\}|$)").unwrap();
 
         let mut errors = Vec::new();
-        let new = names_re.replace_all(&string.value(), |c: &regex::Captures| {
-            let full = c.at(0).unwrap();
+        let string_value = string.value();
+        let new = names_re.replace_all(string_value.as_str(), |c: &regex::Captures| {
+            let full = c.get(0).unwrap().as_str();
             if !full.ends_with('}') {
                 errors.push(format!("unclosed escape in `named!`: {}", full));
             } else {
-                let name = c.at(1).unwrap();
+                let name = c.get(1).unwrap().as_str();
                 match unicode_names2::character(name) {
                     Some(c) => return c.to_string(),
                     None => {

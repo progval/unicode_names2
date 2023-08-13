@@ -18,8 +18,8 @@ description = "Support macros for `unicode_names2`."
 unstable = []
 
 [dependencies]
-regex = "1.9.3"
-syn = "2.0.28"
+regex = "1.0"
+syn = "2.0"
 
 [dependencies.unicode_names2]
 path = ".."

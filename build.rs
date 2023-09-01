@@ -4,6 +4,9 @@ use unicode_names2_generator as generator;
 const UNICODE_DATA: &str = include_str!("data/UnicodeData.txt");
 
 fn main() {
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=data/");
+    println!("cargo:rerun-if-changed=generator/");
     let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
     {
         let mut generated_path = out_dir.clone();

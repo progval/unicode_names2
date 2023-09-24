@@ -30,6 +30,7 @@ members = [".", "generator"]
 
 [features]
 default = []
+aliases = ["phf"]
 
 unstable = []
 no_std = []
@@ -39,7 +40,7 @@ path = "unicode_names2_macros"
 version = ">=0.3, <2.0"
 
 [dependencies]
-phf = { version = "0.11.1", default-features = false }
+phf = { version = "0.11.1", default-features = false, optional = true }
 
 [dev-dependencies]
 rand = "0.8.5"

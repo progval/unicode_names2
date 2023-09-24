@@ -24,7 +24,7 @@ fn main() {
         generated_phf_path.push("generated_phf.rs");
         generator::generate_phf(UNICODE_DATA, Some(&generated_phf_path), None, 3, 2);
     }
-    {
+    if env::var_os("CARGO_FEATURE_ALIASES").is_some() {
         let mut generated_alias_path = out_dir;
         generated_alias_path.push("generated_alias.rs");
         generator::generate_aliases(NAME_ALIASES, &generated_alias_path);

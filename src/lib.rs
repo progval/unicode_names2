@@ -88,6 +88,7 @@ mod jamo;
 
 /// A map of unicode aliases to their corresponding values.
 /// Generated in generator
+#[cfg(feature = "aliases")]
 #[allow(dead_code)]
 static ALIASES: phf::Map<&'static [u8], char> =
     include!(concat!(env!("OUT_DIR"), "/generated_alias.rs"));
@@ -314,8 +315,13 @@ fn split(hash: u64) -> (u32, u32, u32) {
 }
 
 /// Get alias value from alias name, returns `None` if the alias is not found.
+#[cfg(feature = "aliases")]
 fn character_by_alias(name: &[u8]) -> Option<char> {
     ALIASES.get(name).copied()
+}
+#[cfg(not(feature = "aliases"))]
+fn character_by_alias(_name: &[u8]) -> Option<char> {
+    None
 }
 
 /// Find the character called `name`, or `None` if no such character
@@ -331,6 +337,8 @@ fn character_by_alias(name: &[u8]) -> Option<char> {
 /// assert_eq!(unicode_names2::character("latin small letter a"), Some('a'));
 /// assert_eq!(unicode_names2::character("BLACK STAR"), Some('★'));
 /// assert_eq!(unicode_names2::character("SNOWMAN"), Some('☃'));
+///
+/// #[cfg(feature = "aliases")]
 /// assert_eq!(unicode_names2::character("BACKSPACE"), Some('\x08'));
 ///
 /// assert_eq!(unicode_names2::character("nonsense"), None);
@@ -607,6 +615,7 @@ mod tests {
         assert_eq!(character("CJK UNIFIED IDEOGRAPH-2A6FF"), None);
     }
 
+    #[cfg(feature = "aliases")]
     #[test]
     fn character_by_alias() {
         assert_eq!(super::character_by_alias(b"NEW LINE"), Some('\n'));

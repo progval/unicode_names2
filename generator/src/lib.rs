@@ -204,7 +204,7 @@ fn bin_data(dat: &[u32]) -> (Vec<u32>, Vec<u32>, usize) {
                 hash_map::Entry::Vacant(v) => {
                     // no :(, better put it in.
                     let index = t2.len();
-                    t2.extend(chunk.iter().cloned());
+                    t2.extend(chunk.iter().copied());
                     v.insert(index)
                 }
             };
@@ -235,8 +235,8 @@ fn bin_data(dat: &[u32]) -> (Vec<u32>, Vec<u32>, usize) {
     data
 }
 
-fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: Vec<(char, &str)>) {
-    let (lexicon_string, mut lexicon_words) = create_lexicon_and_offsets(codepoint_names.clone());
+fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: &[(char, &str)]) {
+    let (lexicon_string, mut lexicon_words) = create_lexicon_and_offsets(codepoint_names.to_owned());
 
     let num_escapes = (lexicon_words.len() + 255) / 256;
 
@@ -323,7 +323,7 @@ fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: Vec<(char, &str)>) 
             // info!("{}: '{}' {}", name, w, data);
 
             // blit the data.
-            phrasebook.extend(data.iter().cloned())
+            phrasebook.extend(data.iter().copied())
         }
 
         // add the high bit to the first byte of the last encoded
@@ -426,7 +426,7 @@ pub fn generate(unicode_data: &'static str, path: Option<&Path>, truncate: Optio
 
     write_cjk_ideograph_ranges(&mut ctxt, &cjk);
     let _ = ctxt.out.write(b"\n").unwrap();
-    write_codepoint_maps(&mut ctxt, codepoint_names);
+    write_codepoint_maps(&mut ctxt, &codepoint_names);
 
     if let Some(path) = path {
         fs::rename(path.with_extension("tmp"), path).unwrap()

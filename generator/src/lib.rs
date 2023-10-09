@@ -106,9 +106,9 @@ pub fn get_aliases(name_aliases: &'static str) -> Vec<Alias> {
             continue;
         }
         let mut parts = line.splitn(3, ';');
-        let code = parts.next().unwrap();
-        let alias = parts.next().unwrap();
-        let category = parts.next().unwrap();
+        let code = parts.next().expect(line);
+        let alias = parts.next().expect(code);
+        let category = parts.next().expect(alias);
         aliases.push(Alias {
             code,
             alias,

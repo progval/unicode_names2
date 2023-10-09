@@ -236,7 +236,8 @@ fn bin_data(dat: &[u32]) -> (Vec<u32>, Vec<u32>, usize) {
 }
 
 fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: &[(char, &str)]) {
-    let (lexicon_string, mut lexicon_words) = create_lexicon_and_offsets(codepoint_names.to_owned());
+    let (lexicon_string, mut lexicon_words) =
+        create_lexicon_and_offsets(codepoint_names.to_owned());
 
     let num_escapes = (lexicon_words.len() + 255) / 256;
 

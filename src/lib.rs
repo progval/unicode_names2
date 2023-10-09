@@ -121,30 +121,20 @@ enum Name_ {
 }
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 struct CJK {
     emit_prefix: bool,
     idx: u8,
     // the longest character is 0x10FFFF
     data: [u8; 6],
 }
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 struct Hangul {
     emit_prefix: bool,
     idx: u8,
     // stores the choseong, jungseong, jongseong syllable numbers (in
     // that order)
     data: [u8; 3],
-}
-impl Clone for CJK {
-    fn clone(&self) -> CJK {
-        *self
-    }
-}
-impl Clone for Hangul {
-    fn clone(&self) -> Hangul {
-        *self
-    }
 }
 
 #[allow(clippy::len_without_is_empty)]
@@ -181,7 +171,7 @@ impl Iterator for Name {
                     .map(|d| {
                         state.idx += 1;
                         static DIGITS: &str = "0123456789ABCDEF";
-                        &DIGITS[d..d + 1]
+                        &DIGITS[d..=d]
                     })
             }
             Name_::Hangul(ref mut state) => {
@@ -386,11 +376,10 @@ pub fn character(search_name: &str) -> Option<char> {
         // check if the resulting code is indeed in the known ranges
         if is_cjk_unified_ideograph(ch) {
             return Some(ch);
-        } else {
-            // there are no other names starting with `CJK UNIFIED IDEOGRAPH-`
-            // (verified by `src/generate.py`).
-            return None;
         }
+        // there are no other names starting with `CJK UNIFIED IDEOGRAPH-`
+        // (verified by `src/generate.py`).
+        return None;
     }
 
     // get the parts of the hash...

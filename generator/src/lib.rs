@@ -99,7 +99,7 @@ pub struct Alias {
 pub fn get_aliases(name_aliases: &'static str) -> Vec<Alias> {
     let mut aliases = Vec::new();
     for line in name_aliases.lines() {
-        if line.is_empty()|line.starts_with('#') {
+        if line.is_empty() | line.starts_with('#') {
             continue;
         }
         let mut parts = line.splitn(3, ';');

@@ -1,7 +1,7 @@
 //! Convert between characters and their standard names.
 //!
 //! This crate provides two functions for mapping from a `char` to the
-//! name given by the Unicode standard (15.0). There are no runtime
+//! name given by the Unicode standard (15.1). There are no runtime
 //! requirements so this is usable with only `core` (this requires
 //! specifying the `no_std` cargo feature). The tables are heavily
 //! compressed, but still large (500KB), and still offer efficient

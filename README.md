@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/ProgVal/unicode_names2.png)](https://travis-ci.org/ProgVal/unicode_names2)
 
 Time and memory efficiently mapping characters to and from their
-Unicode 15.0 names, at runtime and compile-time.
+Unicode 15.1 names, at runtime and compile-time.
 
 ```rust
 fn main() {

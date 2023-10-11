@@ -19,24 +19,24 @@ pub fn is_hangul_syllable(c: char) -> bool {
 }
 
 pub fn syllable_decomposition(c: char) -> Option<(u8, u8, u8)> {
-    if !is_hangul_syllable(c) {
+    if is_hangul_syllable(c) {
+        let n = c as u32 - 0xAC00;
+        // break this into the various parts.
+        let jongseong = n % 28;
+        let jungseong = (n / 28) % 21;
+        let choseong = n / (28 * 21);
+        Some((choseong as u8, jungseong as u8, jongseong as u8))
+    } else {
         // outside the range
-        return None;
+        None
     }
-    let n = c as u32 - 0xAC00;
-    // break this into the various parts.
-    let jongseong = n % 28;
-    let jungseong = (n / 28) % 21;
-    let choseong = n / (28 * 21);
-
-    Some((choseong as u8, jungseong as u8, jongseong as u8))
 }
 
 fn slice_shift_byte(a: &[u8]) -> (Option<u8>, &[u8]) {
-    if !a.is_empty() {
-        (Some(a[0]), &a[1..])
-    } else {
+    if a.is_empty() {
         (None, a)
+    } else {
+        (Some(a[0]), &a[1..])
     }
 }
 

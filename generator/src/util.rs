@@ -30,29 +30,30 @@ pub struct Split<'a, 'b> {
 impl<'a, 'b> Iterator for Split<'a, 'b> {
     type Item = &'a str;
     fn next(&mut self) -> Option<&'a str> {
-        if self.done {
-            return None;
-        } else if self.s.is_empty() {
-            self.done = true;
-            return Some("");
-        } else if !self.pending.is_empty() {
-            return Some(std::mem::take(&mut self.pending));
-        }
-
-        for (i, b) in self.s.bytes().enumerate() {
-            if b == b' ' || self.splitters.contains(&b) {
-                let ret = &self.s[..i];
-                // dont include the space, but include everything else on the next step
-                if b != b' ' {
-                    self.pending = &self.s[i..i + 1]
+        match (self.done, self.s.is_empty(), self.pending.is_empty()) {
+            (true, _, _) => None,
+            (_, true, _) => {
+                self.done = true;
+                Some("")
+            }
+            (_, _, false) => Some(std::mem::take(&mut self.pending)),
+            _ => {
+                for (i, b) in self.s.bytes().enumerate() {
+                    if b == b' ' || self.splitters.contains(&b) {
+                        let ret = &self.s[..i];
+                        // dont include the space, but include everything else on the next step
+                        if b != b' ' {
+                            self.pending = &self.s[i..i + 1]
+                        }
+                        self.s = &self.s[i + 1..];
+                        return Some(ret);
+                    }
                 }
-                self.s = &self.s[i + 1..];
-                return Some(ret);
+                // trailing data
+                self.done = true;
+                Some(self.s)
             }
         }
-        // trailing data
-        self.done = true;
-        Some(self.s)
     }
 }
 

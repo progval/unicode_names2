@@ -32,10 +32,12 @@ impl<'a, 'b> Iterator for Split<'a, 'b> {
     fn next(&mut self) -> Option<&'a str> {
         if self.done {
             return None;
-        } else if self.s.is_empty() {
+        }
+        if self.s.is_empty() {
             self.done = true;
             return Some("");
-        } else if !self.pending.is_empty() {
+        }
+        if !self.pending.is_empty() {
             return Some(std::mem::take(&mut self.pending));
         }
 

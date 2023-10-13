@@ -1,10 +1,6 @@
 /// Figure out whether we need `u8` (1 byte), `u16` (2 bytes) or `u32` (4 bytes) to store all
 /// numbers. Returns the number of bytes
 pub fn smallest_type<I: Iterator<Item = u32>>(x: I) -> usize {
-    assert!(
-        usize::BITS >= u32::BITS,
-        "Architectures with less than 32 bit `usize`s are not supported"
-    );
     let n = x.max().unwrap_or(0);
     for (max, bytes) in [(u8::MAX as u32, 1), (u16::MAX as u32, 2)] {
         if n <= max {

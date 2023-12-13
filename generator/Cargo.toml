@@ -8,7 +8,7 @@ authors = ["Huon Wilson <dbau.pp@gmail.com>"]
 homepage = "https://github.com/progval/unicode_names2"
 repository = "https://github.com/progval/unicode_names2"
 documentation = "https://docs.rs/unicode_names2/"
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 description = """
 Generates the perfect-hash function used by `unicode_names2`.
 """

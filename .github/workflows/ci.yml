@@ -13,7 +13,7 @@ jobs:
         - nightly
 
         features:
-        - ''
+        - '--all-features'
         - '--no-default-features'
 
     steps:
@@ -96,13 +96,6 @@ jobs:
           toolchain: ${{ matrix.rust }}
           profile: minimal
           override: true
-
-      - name: downgrade 'time' for Rust 1.63.0
-        uses: actions-rs/cargo@v1
-        with:
-          command: update
-          args: --package time --precise 0.3.20
-        if: ${{ matrix.rust == '1.63.0' }}
 
       - name: Build crates
         uses: actions-rs/cargo@v1

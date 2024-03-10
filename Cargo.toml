@@ -33,6 +33,7 @@ default = []
 
 unstable = []
 no_std = []
+generator-timing = ["unicode_names2_generator/timing"]
 
 [dev-dependencies.unicode_names2_macros]
 path = "unicode_names2_macros"

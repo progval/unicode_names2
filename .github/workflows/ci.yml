@@ -104,7 +104,7 @@ jobs:
           args: --package time --precise 0.3.20
         if: ${{ matrix.rust == '1.63.0' }}
 
-      - name: Build generator
+      - name: Build crates
         uses: actions-rs/cargo@v1
         with:
           command: build

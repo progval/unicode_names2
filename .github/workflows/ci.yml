@@ -97,7 +97,7 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Build generator
+      - name: Build crates
         uses: actions-rs/cargo@v1
         with:
           command: build

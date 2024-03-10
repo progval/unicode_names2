@@ -2,7 +2,7 @@
 
 name = "unicode_names2_macros"
 edition = "2018"
-version = "1.2.1"
+version = "1.2.2"
 authors = [
     "Huon Wilson <dbau.pp@gmail.com>",
     "Valentin Lorentz <progval+git@progval.net>"
@@ -25,7 +25,7 @@ syn = "2.0"
 
 [dependencies.unicode_names2]
 path = ".."
-version = "1.2.1"
+version = "1.2.2"
 
 [lib]
 name = "unicode_names2_macros"

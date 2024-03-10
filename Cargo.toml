@@ -3,7 +3,7 @@
 name = "unicode_names2"
 edition = "2018"
 rust-version = "1.63.0"
-version = "1.2.1"
+version = "1.2.2"
 authors = [
     "Huon Wilson <dbau.pp@gmail.com>",
     "Kang Seonghoon <public+rust@mearie.org>",
@@ -47,4 +47,4 @@ rand = "0.8.5"
 rand_xorshift = "0.3.0"
 
 [build-dependencies]
-unicode_names2_generator = { version = "1.2.1", path = "generator" }
+unicode_names2_generator = { version = "1.2.2", path = "generator" }

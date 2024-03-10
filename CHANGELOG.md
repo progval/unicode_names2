@@ -1,3 +1,16 @@
+# v1.2.2
+
+*2024-03-10*
+
+Fixes:
+
+* Make dependency on 'time' optional ([#38](https://github.com/progval/unicode_names2/pull/38/))
+* Remove 'cargo:rerun-if-changed=generator/' ([b25d7610dcd](https://github.com/progval/unicode_names2/commit/b25d7610dcdb1b4f8f0e461a8c7570370e55478f))
+
+Internal:
+
+* ci: On non-nightly, build all crates instead of only generator ([#39](https://github.com/progval/unicode_names2/pull/39))
+
 # v1.2.1
 
 *2023-12-14*

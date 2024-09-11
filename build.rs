@@ -3,13 +3,13 @@ use unicode_names2_generator as generator;
 
 /// [UnicodeData.txt] contains Unicode Character Data
 ///
-/// [UnicodeData.txt]:https://www.unicode.org/Public/15.1.0/ucd/UnicodeData.txt
+/// [UnicodeData.txt]: https://www.unicode.org/Public/16.0.0/ucd/UnicodeData.txt
 const UNICODE_DATA: &str = include_str!("data/UnicodeData.txt");
 /// Unicode aliases
 ///
 /// [NamesList.txt] contents contains a map of unicode aliases to their corresponding values.
 ///
-/// [NamesList.txt]: https://www.unicode.org/Public/15.1.0/ucd/NameAliases.txt
+/// [NamesList.txt]: https://www.unicode.org/Public/16.0.0/ucd/NameAliases.txt
 const NAME_ALIASES: &str = include_str!("data/NameAliases.txt");
 
 fn main() {

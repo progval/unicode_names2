@@ -68,7 +68,7 @@ extern crate std;
 
 use core::{char, fmt};
 use generated::{
-    MAX_NAME_LENGTH, PHRASEBOOK_OFFSETS1, PHRASEBOOK_OFFSETS2, PHRASEBOOK_OFFSET_SHIFT,
+    MAX_NORMALISED_NAME_LENGTH, PHRASEBOOK_OFFSETS1, PHRASEBOOK_OFFSETS2, PHRASEBOOK_OFFSET_SHIFT,
 };
 
 #[allow(dead_code)]
@@ -95,7 +95,9 @@ static ALIASES: phf::Map<&'static [u8], char> =
 mod iter_str;
 
 static HANGUL_SYLLABLE_PREFIX: &str = "HANGUL SYLLABLE ";
+static NORMALISED_HANGUL_SYLLABLE_PREFIX: &str = "HANGULSYLLABLE";
 static CJK_UNIFIED_IDEOGRAPH_PREFIX: &str = "CJK UNIFIED IDEOGRAPH-";
+static NORMALISED_CJK_UNIFIED_IDEOGRAPH_PREFIX: &str = "CJKUNIFIEDIDEOGRAPH";
 
 fn is_cjk_unified_ideograph(ch: char) -> bool {
     generated::CJK_IDEOGRAPH_RANGES
@@ -336,17 +338,16 @@ fn character_by_alias(name: &[u8]) -> Option<char> {
 /// assert_eq!(unicode_names2::character("nonsense"), None);
 /// ```
 pub fn character(search_name: &str) -> Option<char> {
+    let original_name = search_name;
     // + 1 so that we properly handle the case when `name` has a
     // prefix of the longest name, but isn't exactly equal.
-    let mut buf = [0; MAX_NAME_LENGTH + 1];
-    for (place, byte) in buf.iter_mut().zip(search_name.bytes()) {
-        *place = byte.to_ascii_uppercase();
-    }
-    let search_name = buf.get(..search_name.len())?;
+    let mut buf = [0; MAX_NORMALISED_NAME_LENGTH + 1];
+    let len = normalise(search_name, &mut buf[..]);
+    let search_name = &buf[..len];
 
     // try `HANGUL SYLLABLE <choseong><jungseong><jongseong>`
-    if search_name.starts_with(HANGUL_SYLLABLE_PREFIX.as_bytes()) {
-        let remaining = &search_name[HANGUL_SYLLABLE_PREFIX.len()..];
+    if search_name.starts_with(NORMALISED_HANGUL_SYLLABLE_PREFIX.as_bytes()) {
+        let remaining = &search_name[NORMALISED_HANGUL_SYLLABLE_PREFIX.len()..];
         let (choseong, remaining) = jamo::slice_shift_choseong(remaining);
         let (jungseong, remaining) = jamo::slice_shift_jungseong(remaining);
         let (jongseong, remaining) = jamo::slice_shift_jongseong(remaining);
@@ -364,8 +365,8 @@ pub fn character(search_name: &str) -> Option<char> {
     }
 
     // try `CJK UNIFIED IDEOGRAPH-<digits>`
-    if search_name.starts_with(CJK_UNIFIED_IDEOGRAPH_PREFIX.as_bytes()) {
-        let remaining = &search_name[CJK_UNIFIED_IDEOGRAPH_PREFIX.len()..];
+    if search_name.starts_with(NORMALISED_CJK_UNIFIED_IDEOGRAPH_PREFIX.as_bytes()) {
+        let remaining = &search_name[NORMALISED_CJK_UNIFIED_IDEOGRAPH_PREFIX.len()..];
         if remaining.len() > 5 {
             return None;
         } // avoid overflow
@@ -411,7 +412,7 @@ pub fn character(search_name: &str) -> Option<char> {
     let maybe_name = match name(codepoint) {
         None => {
             if true {
-                debug_assert!(false)
+                debug_assert!(false) // what?
             }
             return character_by_alias(search_name);
         }
@@ -420,17 +421,58 @@ pub fn character(search_name: &str) -> Option<char> {
 
     // run through the parts of the name, matching them against the
     // parts of the input.
-    let mut passed_name = search_name;
+    let mut cmp_name = search_name;
     for part in maybe_name {
-        let part = part.as_bytes();
-        let part_l = part.len();
-        if passed_name.len() < part_l || &passed_name[..part_l] != part {
+        let part = match part {
+            "" => "-", // An empty word only appears before or after a non-medial hyphen
+            " " => continue,
+            "-" if codepoint != '\u{1180}' => continue,
+            part => part,
+        };
+
+        if let Some(rest) = cmp_name.strip_prefix(part.as_bytes()) {
+            cmp_name = rest;
+        } else {
             return character_by_alias(search_name);
         }
-        passed_name = &passed_name[part_l..]
+    }
+
+    // HANGUL JUNGSEONG OE is ambiguous with HANGUL JUNGSEONG O-E
+    if codepoint == '\u{116C}' && {
+        let tmp = original_name.trim_ascii_end();
+        tmp[tmp.len() - 3..].eq_ignore_ascii_case("O-E")
+    } {
+        return Some('\u{1180}');
     }
 
     Some(codepoint)
+}
+
+fn normalise(search_name: &str, buf: &mut [u8]) -> usize {
+    let mut cursor = 0;
+    let bytes = search_name.as_bytes();
+
+    for (i, c) in bytes.into_iter().copied().enumerate() {
+        if c.is_ascii_whitespace() || c == b'_' {
+            continue;
+        }
+        if c == b'-'
+            && bytes.get(i - 1).is_some_and(u8::is_ascii_alphanumeric)
+            && bytes.get(i + 1).is_some_and(u8::is_ascii_alphanumeric)
+        {
+            continue;
+        }
+        if !c.is_ascii_alphanumeric() && c != b'-' {
+            return 0;
+        }
+        if cursor >= buf.len() {
+            return 0;
+        }
+        buf[cursor] = c.to_ascii_uppercase();
+        cursor += 1;
+    }
+
+    cursor
 }
 
 #[cfg(test)]
@@ -516,7 +558,7 @@ mod tests {
     #[test]
     fn character_negative() {
         let long_name = "x".repeat(100);
-        assert!(long_name.len() > MAX_NAME_LENGTH); // Otherwise this test is pointless
+        assert!(long_name.len() > generated::MAX_NAME_LENGTH); // Otherwise this test is pointless
         let names = ["", "x", "öäå", "SPAACE", &long_name];
         for &n in names.iter() {
             assert_eq!(character(n), None);
@@ -612,6 +654,27 @@ mod tests {
         assert_eq!(super::character_by_alias(b"NEW LINE"), Some('\n'));
         assert_eq!(super::character_by_alias(b"BACKSPACE"), Some('\u{8}'));
         assert_eq!(super::character_by_alias(b"NOT AN ALIAS"), None);
+    }
+
+    #[test]
+    fn test_uax44() {
+        assert_eq!(character(" L_O_W l_i_n_e"), Some('_'));
+        assert_eq!(character("space \x09\x0a\x0c\x0d"), Some(' '));
+        assert_eq!(character("FULL S-T-O-P"), Some('.'));
+        assert_eq!(character("tibetan letter -a"), Some('\u{F60}'));
+        assert_eq!(character("tibetan letter- a"), Some('\u{F60}'));
+        assert_eq!(character("tibetan letter  -   a"), Some('\u{F60}'));
+        assert_eq!(character("tibetan letter_-_a"), Some('\u{F60}'));
+
+        // Test exceptions related to U+1180
+        let jungseong_oe = Some('\u{116C}');
+        let jungseong_o_e = Some('\u{1180}');
+        assert_eq!(character("HANGUL JUNGSEONG OE"), jungseong_oe);
+        assert_eq!(character("HANGUL JUNGSEONG O-E"), jungseong_o_e);
+        assert_eq!(character("HANGUL JUNGSEONG O E"), jungseong_oe);
+        assert_eq!(character("HANGUL JUNGSEONG O- E"), jungseong_o_e);
+        assert_eq!(character("HANGUL JUNGSEONG O -E"), jungseong_o_e);
+        assert_eq!(character("HANGUL JUNGSEONG O_-_E"), jungseong_o_e);
     }
 
     #[bench]

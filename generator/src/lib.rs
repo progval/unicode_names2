@@ -156,7 +156,7 @@ fn create_lexicon_and_offsets(
                 // insert the suffixes of this word which saves about
                 // 10KB (we could theoretically insert all substrings,
                 // upto a certain length, but this only saves ~300
-                // bytes or so and is noticably slower).
+                // bytes or so and is noticeably slower).
                 for i in 1..n.len() {
                     if t.insert(n[i..].bytes(), Some(offset + i), true).0 {
                         // once we've found a string that's already
@@ -308,8 +308,10 @@ fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: Vec<(char, &str)>) 
     // using the binning, below.
     let mut phrasebook_offsets = repeat(0).take(0x10FFFF + 1).collect::<Vec<_>>();
     let mut longest_name = 0;
+    let mut longest_normalised_name = 0;
     for &(cp, name) in codepoint_names.iter() {
         longest_name = cmp::max(name.len(), longest_name);
+        longest_normalised_name = cmp::max(normalise_name(name, cp).len(), longest_normalised_name);
 
         let start = phrasebook.len() as u32;
         phrasebook_offsets[cp as usize] = start;
@@ -337,8 +339,8 @@ fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: Vec<(char, &str)>) 
 
     w!(
         ctxt,
-        "pub const MAX_NAME_LENGTH: usize = {};\n",
-        longest_name
+        "pub const MAX_NAME_LENGTH: usize = {longest_name};\n\
+        pub const MAX_NORMALISED_NAME_LENGTH: usize = {longest_normalised_name};\n",
     );
     ctxt.write_plain_string("LEXICON", &lexicon_string);
     ctxt.write_debugs("LEXICON_OFFSETS", "u32", &lexicon_offsets);
@@ -407,6 +409,11 @@ pub fn generate_phf(
 ) {
     let (codepoint_names, _) = get_truncated_table_data(unicode_data, truncate);
 
+    let codepoint_names: Vec<_> = codepoint_names
+        .into_iter()
+        .map(|(c, s)| (c, normalise_name(s, c)))
+        .collect();
+
     let mut ctxt = make_context(path);
     let (n, disps, data) = phf::create_phf(&codepoint_names, lambda, tries);
 
@@ -418,6 +425,31 @@ pub fn generate_phf(
     if let Some(path) = path {
         fs::rename(path.with_extension("tmp"), path).unwrap()
     }
+}
+
+fn normalise_name(s: &str, codepoint: char) -> String {
+    let mut normalised = String::new();
+    let bytes = s.as_bytes();
+    for (i, c) in bytes.into_iter().copied().enumerate() {
+        if c.is_ascii_whitespace() || c == b'_' {
+            continue;
+        }
+        if codepoint != '\u{1180}' // HANGUL JUNGSEONG O-E
+            && c == b'-'
+            && bytes.get(i - 1).is_some_and(u8::is_ascii_alphanumeric)
+            && bytes.get(i + 1).is_some_and(u8::is_ascii_alphanumeric)
+        {
+            continue;
+        }
+        assert!(
+            c.is_ascii_alphanumeric() || c == b'-',
+            "{:?} isn't a valid character for a Unicode name",
+            c as char
+        );
+        normalised.push(c.to_ascii_uppercase() as char);
+    }
+
+    normalised
 }
 
 pub fn generate(unicode_data: &'static str, path: Option<&Path>, truncate: Option<usize>) {

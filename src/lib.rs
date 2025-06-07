@@ -379,10 +379,7 @@ pub fn character(search_name: &str) -> Option<char> {
                 _ => return None,
             }
         }
-        let ch = match char::from_u32(v) {
-            Some(ch) => ch,
-            None => return None,
-        };
+        let ch = char::from_u32(v)?;
 
         // check if the resulting code is indeed in the known ranges
         if is_cjk_unified_ideograph(ch) {
@@ -438,10 +435,7 @@ pub fn character(search_name: &str) -> Option<char> {
     }
 
     // HANGUL JUNGSEONG OE is ambiguous with HANGUL JUNGSEONG O-E
-    if codepoint == '\u{116C}' && {
-        let tmp = original_name.trim_ascii_end();
-        tmp[tmp.len() - 3..].eq_ignore_ascii_case("O-E")
-    } {
+    if codepoint == '\u{116C}' && original_name.rfind("O-E").is_some() {
         return Some('\u{1180}');
     }
 
@@ -452,13 +446,13 @@ fn normalise(search_name: &str, buf: &mut [u8]) -> usize {
     let mut cursor = 0;
     let bytes = search_name.as_bytes();
 
-    for (i, c) in bytes.into_iter().copied().enumerate() {
+    for (i, c) in bytes.iter().copied().enumerate() {
         if c.is_ascii_whitespace() || c == b'_' {
             continue;
         }
         if c == b'-'
-            && bytes.get(i - 1).is_some_and(u8::is_ascii_alphanumeric)
-            && bytes.get(i + 1).is_some_and(u8::is_ascii_alphanumeric)
+            && bytes.get(i - 1).map_or(false, u8::is_ascii_alphanumeric)
+            && bytes.get(i + 1).map_or(false, u8::is_ascii_alphanumeric)
         {
             continue;
         }

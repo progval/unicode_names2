@@ -430,14 +430,14 @@ pub fn generate_phf(
 fn normalise_name(s: &str, codepoint: char) -> String {
     let mut normalised = String::new();
     let bytes = s.as_bytes();
-    for (i, c) in bytes.into_iter().copied().enumerate() {
+    for (i, c) in bytes.iter().copied().enumerate() {
         if c.is_ascii_whitespace() || c == b'_' {
             continue;
         }
         if codepoint != '\u{1180}' // HANGUL JUNGSEONG O-E
             && c == b'-'
-            && bytes.get(i - 1).is_some_and(u8::is_ascii_alphanumeric)
-            && bytes.get(i + 1).is_some_and(u8::is_ascii_alphanumeric)
+            && bytes.get(i - 1).map_or(false, u8::is_ascii_alphanumeric)
+            && bytes.get(i + 1).map_or(false, u8::is_ascii_alphanumeric)
         {
             continue;
         }

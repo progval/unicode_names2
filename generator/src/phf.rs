@@ -47,7 +47,7 @@ fn try_phf_table(
 ) -> Option<(Vec<(u32, u32)>, Vec<char>)> {
     let hashes: Vec<_> = values
         .iter()
-        .map(|(n, s)| (split(hash(&s, seed)), *n))
+        .map(|(n, s)| (split(hash(s, seed)), *n))
         .collect();
 
     let table_len = hashes.len();

@@ -434,8 +434,16 @@ pub fn character(search_name: &str) -> Option<char> {
         }
     }
 
-    // HANGUL JUNGSEONG OE is ambiguous with HANGUL JUNGSEONG O-E
-    if codepoint == '\u{116C}' && original_name.rfind("O-E").is_some() {
+    // "HANGUL JUNGSEONG O-E" is ambiguous, returning U+116C HANGUL JUNGSEONG OE instead.
+    // All other ways of spelling U+1180 will get properly detected, so it's enough to just check
+    // if the hyphen is in the right place.
+    if codepoint == '\u{116C}'
+        && original_name
+            .trim_end_matches(|c: char| c.is_ascii_whitespace() || c == '_')
+            .bytes()
+            .nth_back(1)
+            == Some(b'-')
+    {
         return Some('\u{1180}');
     }
 
@@ -659,13 +667,17 @@ mod tests {
         assert_eq!(character("tibetan letter- a"), Some('\u{F60}'));
         assert_eq!(character("tibetan letter  -   a"), Some('\u{F60}'));
         assert_eq!(character("tibetan letter_-_a"), Some('\u{F60}'));
+        assert_eq!(character("latinSMALLletterA"), Some('a'));
 
         // Test exceptions related to U+1180
         let jungseong_oe = Some('\u{116C}');
         let jungseong_o_e = Some('\u{1180}');
         assert_eq!(character("HANGUL JUNGSEONG OE"), jungseong_oe);
-        assert_eq!(character("HANGUL JUNGSEONG O-E"), jungseong_o_e);
+        assert_eq!(character("HANGUL JUNGSEONG O_E"), jungseong_oe);
         assert_eq!(character("HANGUL JUNGSEONG O E"), jungseong_oe);
+        assert_eq!(character("HANGUL JUNGSEONG O-E"), jungseong_o_e);
+        assert_eq!(character("HANGUL JUNGSEONG O-E\n"), jungseong_o_e);
+        assert_eq!(character("HANGUL JUNGSEONG O-E__"), jungseong_o_e);
         assert_eq!(character("HANGUL JUNGSEONG O- E"), jungseong_o_e);
         assert_eq!(character("HANGUL JUNGSEONG O -E"), jungseong_o_e);
         assert_eq!(character("HANGUL JUNGSEONG O_-_E"), jungseong_o_e);

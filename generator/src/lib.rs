@@ -307,11 +307,9 @@ fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: Vec<(char, &str)>) 
     // currently huge, but it has a lot of 0's, so we compress it
     // using the binning, below.
     let mut phrasebook_offsets = repeat(0).take(0x10FFFF + 1).collect::<Vec<_>>();
-    let mut longest_name = 0;
-    let mut longest_normalised_name = 0;
+    let mut longest_name = String::new();
     for &(cp, name) in codepoint_names.iter() {
-        longest_name = cmp::max(name.len(), longest_name);
-        longest_normalised_name = cmp::max(normalise_name(name, cp).len(), longest_normalised_name);
+        longest_name = cmp::max_by_key(normalise_name(name, cp), longest_name, |s| s.len());
 
         let start = phrasebook.len() as u32;
         phrasebook_offsets[cp as usize] = start;
@@ -339,8 +337,8 @@ fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: Vec<(char, &str)>) 
 
     w!(
         ctxt,
-        "pub const MAX_NAME_LENGTH: usize = {longest_name};\n\
-        pub const MAX_NORMALISED_NAME_LENGTH: usize = {longest_normalised_name};\n",
+        "pub const LONGEST_NAME: &str = {longest_name:?};\n\
+        pub const LONGEST_NAME_LEN: usize = LONGEST_NAME.len();\n"
     );
     ctxt.write_plain_string("LEXICON", &lexicon_string);
     ctxt.write_debugs("LEXICON_OFFSETS", "u32", &lexicon_offsets);
@@ -427,13 +425,21 @@ pub fn generate_phf(
     }
 }
 
+/// Convert a Unicode name to a form that can be used for loose matching, as per
+/// [UAX#44](https://www.unicode.org/reports/tr44/tr44-34.html#Matching_Names)
+///
+/// This function matches `unicode_names2::normalise_name` in implementation, thus the result of one
+/// can be used to query a PHF generated from the other.
 fn normalise_name(s: &str, codepoint: char) -> String {
     let mut normalised = String::new();
     let bytes = s.as_bytes();
-    for (i, c) in bytes.iter().copied().enumerate() {
+    for (i, c) in bytes.iter().map(u8::to_ascii_uppercase).enumerate() {
+        // "Ignore case, whitespace, underscore ('_'), [...]"
         if c.is_ascii_whitespace() || c == b'_' {
             continue;
         }
+
+        // "[...] and all medial hyphens except the hyphen in U+1180 HANGUL JUNGSEONG O-E."
         if codepoint != '\u{1180}' // HANGUL JUNGSEONG O-E
             && c == b'-'
             && bytes.get(i - 1).map_or(false, u8::is_ascii_alphanumeric)
@@ -443,10 +449,12 @@ fn normalise_name(s: &str, codepoint: char) -> String {
         }
         assert!(
             c.is_ascii_alphanumeric() || c == b'-',
-            "{:?} isn't a valid character for a Unicode name",
-            c as char
+            "U+{:04X} contains an invalid character for a Unicode name: {:?}",
+            codepoint as u32,
+            s
         );
-        normalised.push(c.to_ascii_uppercase() as char);
+
+        normalised.push(c as char);
     }
 
     normalised

@@ -68,7 +68,7 @@ extern crate std;
 
 use core::{char, fmt};
 use generated::{
-    MAX_NORMALISED_NAME_LENGTH, PHRASEBOOK_OFFSETS1, PHRASEBOOK_OFFSETS2, PHRASEBOOK_OFFSET_SHIFT,
+    LONGEST_NAME_LEN, PHRASEBOOK_OFFSETS1, PHRASEBOOK_OFFSETS2, PHRASEBOOK_OFFSET_SHIFT,
 };
 
 #[allow(dead_code)]
@@ -339,10 +339,8 @@ fn character_by_alias(name: &[u8]) -> Option<char> {
 /// ```
 pub fn character(search_name: &str) -> Option<char> {
     let original_name = search_name;
-    // + 1 so that we properly handle the case when `name` has a
-    // prefix of the longest name, but isn't exactly equal.
-    let mut buf = [0; MAX_NORMALISED_NAME_LENGTH + 1];
-    let len = normalise(search_name, &mut buf[..]);
+    let mut buf = [0; LONGEST_NAME_LEN];
+    let len = normalise_name(search_name, &mut buf);
     let search_name = &buf[..len];
 
     // try `HANGUL SYLLABLE <choseong><jungseong><jongseong>`
@@ -416,15 +414,16 @@ pub fn character(search_name: &str) -> Option<char> {
         Some(name) => name,
     };
 
-    // run through the parts of the name, matching them against the
-    // parts of the input.
+    // `name(codepoint)` returns an iterator yielding words separated by spaces or hyphens.
+    // That means whenever a name contains a non-medial hyphen, it must be emulated by inserting an
+    // artificial empty word (`""`) between the space and the hyphen.
     let mut cmp_name = search_name;
     for part in maybe_name {
         let part = match part {
-            "" => "-", // An empty word only appears before or after a non-medial hyphen
-            " " => continue,
-            "-" if codepoint != '\u{1180}' => continue,
-            part => part,
+            "" => "-",       // Non-medial hyphens are preserved by `normalise_name`, check them.
+            " " => continue, // Spaces and medial hyphens are removed, ignore them.
+            "-" if codepoint != '\u{1180}' => continue, // But the hyphen in U+1180 is preserved.
+            word => word,
         };
 
         if let Some(rest) = cmp_name.strip_prefix(part.as_bytes()) {
@@ -450,27 +449,44 @@ pub fn character(search_name: &str) -> Option<char> {
     Some(codepoint)
 }
 
-fn normalise(search_name: &str, buf: &mut [u8]) -> usize {
+/// Convert a Unicode name to a form that can be used for loose matching, as per
+/// [UAX#44](https://www.unicode.org/reports/tr44/tr44-34.html#Matching_Names)
+///
+/// This function matches `unicode_names2_generator::normalise_name` in implementation, except that
+/// the special case of U+1180 HANGUL JUNGSEONG O-E isn't handled here, because we don't yet know
+/// which character is being queried and a string comparison would be expensive to inspect each
+/// query with given it only matches for one character. Thus the case of U+1180 is handled at the
+/// end of [`character`].
+fn normalise_name(search_name: &str, buf: &mut [u8; LONGEST_NAME_LEN]) -> usize {
     let mut cursor = 0;
     let bytes = search_name.as_bytes();
 
-    for (i, c) in bytes.iter().copied().enumerate() {
+    for (i, c) in bytes.iter().map(u8::to_ascii_uppercase).enumerate() {
+        // "Ignore case, whitespace, underscore ('_'), [...]"
         if c.is_ascii_whitespace() || c == b'_' {
             continue;
         }
+
+        // "[...] and all medial hyphens except the hyphen in U+1180 HANGUL JUNGSEONG O-E."
+        // See doc comment for why U+1180 isn't handled
         if c == b'-'
             && bytes.get(i - 1).map_or(false, u8::is_ascii_alphanumeric)
             && bytes.get(i + 1).map_or(false, u8::is_ascii_alphanumeric)
         {
             continue;
         }
+
         if !c.is_ascii_alphanumeric() && c != b'-' {
+            // All unicode names comprise only of alphanumeric characters and hyphens after
+            // stripping spaces and underscores. Returning 0 effectively serves as returning `None`.
             return 0;
         }
+
         if cursor >= buf.len() {
+            // No Unicode character has this long a name.
             return 0;
         }
-        buf[cursor] = c.to_ascii_uppercase();
+        buf[cursor] = c;
         cursor += 1;
     }
 
@@ -559,9 +575,9 @@ mod tests {
 
     #[test]
     fn character_negative() {
-        let long_name = "x".repeat(100);
-        assert!(long_name.len() > generated::MAX_NAME_LENGTH); // Otherwise this test is pointless
-        let names = ["", "x", "öäå", "SPAACE", &long_name];
+        let long_name = "x".repeat(generated::LONGEST_NAME_LEN + 1);
+        let prefix = format!("{}x", generated::LONGEST_NAME); // This name would appear valid if truncated
+        let names = ["", "x", "öäå", "SPAACE", &long_name, &prefix];
         for &n in names.iter() {
             assert_eq!(character(n), None);
         }

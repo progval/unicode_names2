@@ -56,7 +56,8 @@
 //! Under this scheme, the query `Low_Line` will find `U+005F LOW LINE`, as well as `l o w L-I-N-E`,
 //! `lowline`, and `low\nL-I-N-E`, but not `low- line`.
 //! Similarly, `tibetan letter -a` will find `U+0F60 TIBETAN LETTER -A`, as well as
-//! `tibetanletter - a` and `TIBETAN L_ETTE_R-  __a__`, but not `tibetan letter-a` or `TIBETAN LETTER A`.
+//! `tibetanletter - a` and `TIBETAN L_ETTE_R-  __a__`, but not `tibetan letter-a` or
+//! `TIBETAN LETTER A`.
 //!
 //! In the implementation of this crate, 'whitespace' is determined by the [`is_ascii_whitespace`]
 //! method on `u8` and `char`. See its documentation for more info.
@@ -124,11 +125,17 @@ fn is_cjk_unified_ideograph(ch: char) -> bool {
         .any(|&(lo, hi)| lo <= ch && ch <= hi)
 }
 
-/// An iterator over the components of a code point's name, it also
-/// implements `Show`.
+/// An iterator over the components of a code point's name. Notably implements `Display`.
 ///
-/// The size hint is exact for the number of pieces, but iterates
-/// (although iteration is cheap and all names are short).
+/// To reconstruct the full Unicode name from this iterator, you can concatenate every string slice
+/// yielded from it. Each such slice is either a word matching `[A-Z0-9]*`, a space `" "`, or a
+/// hyphen `"-"`. (In particular, words can be the empty string `""`).
+///
+/// The [size hint] returns an exact size, by cloning the iterator and iterating it fully.
+/// Cloning and iteration are cheap, and all names are relatively short, so this should not have a
+/// high impact.
+///
+/// [size hint]: std::iter::Iterator::size_hint
 #[derive(Clone)]
 pub struct Name {
     data: Name_,
@@ -182,6 +189,7 @@ impl Name {
 
 impl Iterator for Name {
     type Item = &'static str;
+
     fn next(&mut self) -> Option<&'static str> {
         match self.data {
             Name_::Plain(ref mut s) => s.next(),
@@ -246,20 +254,16 @@ impl fmt::Display for Name {
 
 /// Find the name of `c`, or `None` if `c` has no name.
 ///
-/// The return value is an iterator that yields `&str` components of
-/// the name successively (including spaces and hyphens). It
-/// implements `Show`, and thus can be used naturally to build
-/// `String`s, or be printed, etc.
+/// The return value is an iterator that yields `&'static str` components of the name successively
+/// (including spaces and hyphens). It implements `Display`, so can be used naturally to build
+/// `String`s or be printed. See also the [type-level docs][Name].
 ///
 /// # Example
 ///
 /// ```rust
-/// assert_eq!(unicode_names2::name('a').map(|n| n.to_string()),
-///            Some("LATIN SMALL LETTER A".to_string()));
-/// assert_eq!(unicode_names2::name('\u{2605}').map(|n| n.to_string()),
-///            Some("BLACK STAR".to_string()));
-/// assert_eq!(unicode_names2::name('☃').map(|n| n.to_string()),
-///            Some("SNOWMAN".to_string()));
+/// assert_eq!(unicode_names2::name('a').unwrap().to_string(), "LATIN SMALL LETTER A");
+/// assert_eq!(unicode_names2::name('\u{2605}').unwrap().to_string(), "BLACK STAR");
+/// assert_eq!(unicode_names2::name('☃').unwrap().to_string(), "SNOWMAN");
 ///
 /// // control code
 /// assert!(unicode_names2::name('\x00').is_none());
@@ -342,8 +346,8 @@ fn character_by_alias(name: &[u8]) -> Option<char> {
 /// Find the character called `name`, or `None` if no such character
 /// exists.
 ///
-/// This function uses the [UAX44-LM2] loose matching scheme for lookup. For more information, see the
-/// [crate-level docs][self].
+/// This function uses the [UAX44-LM2] loose matching scheme for lookup. For more information, see
+/// the [crate-level docs][self].
 ///
 /// [UAX44-LM2]: https://www.unicode.org/reports/tr44/tr44-34.html#UAX44-LM2
 ///
@@ -471,7 +475,7 @@ pub fn character(search_name: &str) -> Option<char> {
 }
 
 /// Convert a Unicode name to a form that can be used for loose matching, as per
-/// [UAX#44](https://www.unicode.org/reports/tr44/tr44-34.html#Matching_Names)
+/// [UAX#44](https://www.unicode.org/reports/tr44/tr44-34.html#Matching_Names).
 ///
 /// This function matches `unicode_names2_generator::normalise_name` in implementation, except that
 /// the special case of U+1180 HANGUL JUNGSEONG O-E isn't handled here, because we don't yet know

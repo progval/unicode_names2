@@ -47,6 +47,25 @@
 //! }
 //! ```
 //!
+//! # Loose Matching
+//! For name->char retrieval (the `character` function and macros) this crate uses loose matching,
+//! as defined in Unicode Standard Annex #44[^1].
+//! In general, this means case, whitespace and underscore characters are ignored, as well as
+//! _medial hyphens_, which are hyphens (`-`) that come between two alphanumeric characters[^1].
+//!
+//! Under this scheme, the query `Low_Line` will find `U+005F LOW LINE`, as well as `l o w L-I-N-E`,
+//! `lowline`, and `low\nL-I-N-E`, but not `low- line`.
+//! Similarly, `tibetan letter -a` will find `U+0F60 TIBETAN LETTER -A`, as well as
+//! `tibetanletter - a` and `TIBETAN L_ETTE_R-  __a__`, but not `tibetan letter-a` or `TIBETAN LETTER A`.
+//!
+//! In the implementation of this crate, 'whitespace' is determined by the [`is_ascii_whitespace`]
+//! method on `u8` and `char`. See its documentation for more info.
+//!
+//! [^1]: See [UAX44-LM2] for precise details.
+//!
+//! [UAX44-LM2]: https://www.unicode.org/reports/tr44/tr44-34.html#UAX44-LM2
+//! [`is_ascii_whitespace`]: char::is_ascii_whitespace
+//!
 //! # Cargo-enabled
 //!
 //! This package is on crates.io, so add either (or both!) of the
@@ -323,15 +342,17 @@ fn character_by_alias(name: &[u8]) -> Option<char> {
 /// Find the character called `name`, or `None` if no such character
 /// exists.
 ///
-/// This searches case-insensitively.
+/// This function uses the [UAX44-LM2] loose matching scheme for lookup. For more information, see the
+/// [crate-level docs][self].
+///
+/// [UAX44-LM2]: https://www.unicode.org/reports/tr44/tr44-34.html#UAX44-LM2
 ///
 /// # Example
 ///
 /// ```rust
 /// assert_eq!(unicode_names2::character("LATIN SMALL LETTER A"), Some('a'));
-/// assert_eq!(unicode_names2::character("latin SMALL letter A"), Some('a'));
-/// assert_eq!(unicode_names2::character("latin small letter a"), Some('a'));
-/// assert_eq!(unicode_names2::character("BLACK STAR"), Some('★'));
+/// assert_eq!(unicode_names2::character("latinsmalllettera"), Some('a'));
+/// assert_eq!(unicode_names2::character("Black_Star"), Some('★'));
 /// assert_eq!(unicode_names2::character("SNOWMAN"), Some('☃'));
 /// assert_eq!(unicode_names2::character("BACKSPACE"), Some('\x08'));
 ///

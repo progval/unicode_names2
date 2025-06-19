@@ -1,12 +1,12 @@
-//! Computes a perfect hash table using [the CHD
-//! algorithm](http://cmph.sourceforge.net/papers/esa09.pdf).
+//! Computes a perfect hash table using
+//! [the CHD algorithm](http://cmph.sourceforge.net/papers/esa09.pdf).
 //!
-//! Strongly inspired by https://github.com/sfackler/rust-phf
+//! Strongly inspired by [rust-phf](https://github.com/sfackler/rust-phf).
 
 use rand::prelude::{Rng, SeedableRng, SliceRandom, StdRng};
 use std::iter::repeat;
 
-static NOVAL: char = '\0';
+const NO_VAL: char = '\0';
 
 /// FNV
 fn hash(s: &str, h: u64) -> u64 {
@@ -67,7 +67,7 @@ fn try_phf_table(
     // value for `foo` is "just" `map[displace(hash(foo))]`, where
     // `displace` uses the pair of displacements that we computed
     // (stored in `disps`).
-    let mut map = repeat(NOVAL).take(table_len).collect::<Vec<_>>();
+    let mut map = repeat(NO_VAL).take(table_len).collect::<Vec<_>>();
     let mut disps = repeat((0, 0)).take(buckets_len).collect::<Vec<_>>();
 
     // the set of index -> value mappings for the next bucket to be
@@ -111,7 +111,7 @@ fn try_phf_table(
                     // to avoid collisions.
                     let idx = (displace(h.f1, h.f2, d1, d2) % table_len as u32) as usize;
 
-                    if map[idx] != NOVAL || try_map[idx] == generation {
+                    if map[idx] != NO_VAL || try_map[idx] == generation {
                         // nope, this one is taken, so this pair of
                         // displacements doesn't work.
                         continue 'next_disp;

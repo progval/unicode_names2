@@ -13,6 +13,7 @@ pub fn smallest_type<I: Iterator<Item = u32>>(x: I) -> usize {
 pub fn smallest_u<I: Iterator<Item = u32>>(x: I) -> String {
     format!("u{}", 8 * smallest_type(x))
 }
+
 pub fn split<'a, 'b>(s: &'a str, splitters: &'b [u8]) -> Split<'a, 'b> {
     Split {
         s,
@@ -28,8 +29,10 @@ pub struct Split<'a, 'b> {
     pending: &'a str,
     done: bool,
 }
+
 impl<'a, 'b> Iterator for Split<'a, 'b> {
     type Item = &'a str;
+
     fn next(&mut self) -> Option<&'a str> {
         if self.done {
             return None;

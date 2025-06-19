@@ -31,9 +31,9 @@ impl Trie {
             Some(b) => self.get_child(b).set_offset(it, offset),
         }
     }
-    /// insert the value given by the sequence `it`, returning a tuple
-    /// (is this a substring already in the tree, was this exact
-    /// sequence previously inserted).
+
+    /// insert the value given by the sequence `it`, returning a tuple (is this a substring already
+    /// in the tree, was this exact sequence previously inserted).
     pub fn insert<I: Iterator<Item = u8>>(
         &mut self,
         mut it: I,

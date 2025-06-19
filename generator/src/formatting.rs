@@ -1,6 +1,6 @@
 use std::{fmt::Debug, io::prelude::*};
 
-static LINE_LIMIT: usize = 95;
+const LINE_LIMIT: usize = 95;
 
 pub struct Context {
     pub out: Box<dyn Write + 'static>,

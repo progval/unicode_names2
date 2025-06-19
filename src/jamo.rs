@@ -166,6 +166,7 @@ pub fn slice_shift_jongseong(name: &[u8]) -> (Option<u32>, &[u8]) {
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
     use std::prelude::v1::*;
 
     #[test]

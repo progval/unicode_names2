@@ -1,5 +1,4 @@
 [package]
-
 name = "unicode_names2"
 edition = "2018"
 rust-version = "1.63.0"
@@ -30,9 +29,9 @@ members = [".", "generator"]
 
 [features]
 default = []
-
 unstable = []
 no_std = []
+
 generator-timing = ["unicode_names2_generator/timing"]
 
 [dependencies]

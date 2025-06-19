@@ -14,11 +14,8 @@ Generates the perfect-hash function used by `unicode_names2`.
 """
 
 [features]
-unstable = []
-default = []
-timing = ["time"]
+timing = []
 
 [dependencies]
-time = { version = "0.3", optional = true }
 rand = "0.8.5"
 phf_codegen = "0.11.1"

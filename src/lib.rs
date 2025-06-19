@@ -66,17 +66,6 @@
 //!
 //! [UAX44-LM2]: https://www.unicode.org/reports/tr44/tr44-34.html#UAX44-LM2
 //! [`is_ascii_whitespace`]: char::is_ascii_whitespace
-//!
-//! # Cargo-enabled
-//!
-//! This package is on crates.io, so add either (or both!) of the
-//! following to your `Cargo.toml`.
-//!
-//! ```toml
-//! [dependencies]
-//! unicode_names2 = "0.2.1"
-//! unicode_names2_macros = "0.2"
-//! ```
 
 #![cfg_attr(feature = "no_std", no_std)]
 #![cfg_attr(test, feature(test))]

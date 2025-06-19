@@ -57,7 +57,7 @@ impl Trie {
         ret
     }
 
-    pub fn iter(&self) -> Items {
+    pub fn iter(&self) -> Items<'_> {
         Items {
             parents: vec![],
             current: Some(self),
@@ -74,6 +74,7 @@ pub struct Items<'a> {
 
 impl<'a> Iterator for Items<'a> {
     type Item = (usize, Vec<u8>, Option<usize>);
+
     fn next(&mut self) -> Option<(usize, Vec<u8>, Option<usize>)> {
         'outer: loop {
             if let Some(t) = self.current {

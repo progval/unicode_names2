@@ -28,6 +28,10 @@ impl Context {
             width += text.len()
         }
         w!(self, "];\n");
+        println!(
+            "Wrote {len} entries for {name} of type {ty}",
+            len = elements.len()
+        );
     }
 
     pub fn write_debugs<T: Debug>(&mut self, name: &str, ty: &str, elements: &[T]) {
@@ -44,5 +48,6 @@ impl Context {
             self.out.write_all(chunk).unwrap();
         }
         w!(self, "\";\n");
+        println!("Wrote a {} byte string for {name}", data.len());
     }
 }

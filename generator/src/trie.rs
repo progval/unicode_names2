@@ -57,7 +57,7 @@ impl Trie {
         ret
     }
 
-    pub fn iter(&self) -> Items {
+    pub fn iter(&self) -> Items<'_> {
         Items {
             parents: vec![],
             current: Some(self),

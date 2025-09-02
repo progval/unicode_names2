@@ -521,8 +521,7 @@ mod tests {
 
     use test::bench::Bencher;
 
-    static DATA: &'static str =
-        include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/data/UnicodeData.txt"));
+    static DATA: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/data/UnicodeData.txt"));
 
     #[test]
     fn exhaustive() {
@@ -779,7 +778,7 @@ mod tests {
 
         b.iter(|| {
             for n in names.iter() {
-                test::black_box(character(&n));
+                test::black_box(character(n));
             }
         })
     }

@@ -1,7 +1,7 @@
 use std::env;
 
 fn main() {
-    let mut arguments = env::args().into_iter();
+    let mut arguments = env::args();
     arguments.next(); // Executable name
     for argument in arguments {
         for c in argument.chars() {

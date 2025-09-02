@@ -110,8 +110,17 @@ static NORMALISED_CJK_UNIFIED_IDEOGRAPH_PREFIX: &str = "CJKUNIFIEDIDEOGRAPH";
 
 fn is_cjk_unified_ideograph(ch: char) -> bool {
     generated::CJK_IDEOGRAPH_RANGES
-        .iter()
-        .any(|&(lo, hi)| lo <= ch && ch <= hi)
+        .binary_search_by(|&(lo, hi)| {
+            use core::cmp::Ordering::*;
+            if ch < lo {
+                Less
+            } else if ch > hi {
+                Greater
+            } else {
+                Equal
+            }
+        })
+        .is_ok()
 }
 
 /// An iterator over the components of a code point's name. Notably implements `Display`.

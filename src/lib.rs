@@ -233,11 +233,7 @@ impl fmt::Debug for Name {
 }
 impl fmt::Display for Name {
     fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
-        let printed = self.clone();
-        for s in printed {
-            write!(fmtr, "{}", s)?
-        }
-        Ok(())
+        self.clone().try_for_each(|s| fmtr.write_str(s))
     }
 }
 

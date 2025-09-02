@@ -1,5 +1,3 @@
-use core::fmt;
-
 use crate::generated::{
     LEXICON, LEXICON_OFFSETS, LEXICON_ORDERED_LENGTHS, LEXICON_SHORT_LENGTHS, PHRASEBOOK,
     PHRASEBOOK_SHORT,
@@ -70,60 +68,50 @@ impl Iterator for IterStr {
     type Item = &'static str;
     fn next(&mut self) -> Option<&'static str> {
         let mut tmp = self.phrasebook.clone();
-        tmp.next().map(|raw_b| {
-            // the first byte includes if it is the last in this name
-            // in the high bit.
-            let (is_end, b) = (raw_b & 0b1000_0000 != 0, raw_b & 0b0111_1111);
+        let raw_b = tmp.next()?;
+        // the first byte includes if it is the last in this name
+        // in the high bit.
+        let (is_end, b) = (raw_b & 0b1000_0000 != 0, raw_b & 0b0111_1111);
 
-            let ret = if b == HYPHEN {
-                // have to handle this before the case below, because a -
-                // replaces the space entirely.
-                self.last_was_word = false;
-                "-"
-            } else if self.last_was_word {
-                self.last_was_word = false;
-                // early return, we don't want to update the
-                // phrasebook (i.e. we're pretending we didn't touch
-                // this byte).
-                return " ";
+        let ret = if b == HYPHEN {
+            // have to handle this before the case below, because a -
+            // replaces the space entirely.
+            self.last_was_word = false;
+            "-"
+        } else if self.last_was_word {
+            self.last_was_word = false;
+            // early return, we don't want to update the
+            // phrasebook (i.e. we're pretending we didn't touch
+            // this byte).
+            return Some(" ");
+        } else {
+            self.last_was_word = true;
+
+            let (length, idx) = if b < PHRASEBOOK_SHORT {
+                let idx = b as usize;
+                // these lengths are hard-coded
+                (LEXICON_SHORT_LENGTHS[idx] as usize, idx)
             } else {
-                self.last_was_word = true;
+                let idx = u16::from_be_bytes([b - PHRASEBOOK_SHORT, tmp.next().unwrap()]);
 
-                let idx;
-                let length = if b < PHRASEBOOK_SHORT {
-                    idx = b as usize;
-                    // these lengths are hard-coded
-                    LEXICON_SHORT_LENGTHS[idx] as usize
-                } else {
-                    idx = (b - PHRASEBOOK_SHORT) as usize * 256 + (tmp.next().unwrap()) as usize;
-
-                    // The value at each index `i` in the array `LEXICON_ORDERED_LENGTH_INDICES`
-                    // (herein referred to as `arr`) is the largest lexicon index with length `i`.
-                    match LEXICON_ORDERED_LENGTH_INDICES.binary_search(&(idx as u16)) {
-                        // In this case, `idx` is equal to the index at `arr[i]`,
-                        // so `i` is the correct length.
-                        Ok(i) => i,
-                        // `binary_search(idx)` returning `Err(i)` means that `arr[i-1] < idx < arr[i]`.
-                        // Therefore, `idx` is larger than the largest index with length `i - 1`, but
-                        // smaller than the largest index with length `i`, meaning its length is `i`.
-                        Err(i) => i,
-                    }
+                // The value at each index `i` in the array `LEXICON_ORDERED_LENGTH_INDICES`
+                // (herein referred to as `arr`) is the largest lexicon index with length `i`.
+                let length = match LEXICON_ORDERED_LENGTH_INDICES.binary_search(&idx) {
+                    // In this case, `idx` is equal to the index at `arr[i]`,
+                    // so `i` is the correct length.
+                    Ok(i) => i,
+                    // `binary_search(idx)` returning `Err(i)` means that `arr[i-1] < idx < arr[i]`.
+                    // Therefore, `idx` is larger than the largest index with length `i - 1`, but
+                    // smaller than the largest index with length `i`, meaning its length is `i`.
+                    Err(i) => i,
                 };
-                let offset = LEXICON_OFFSETS[idx] as usize;
-                &LEXICON[offset..offset + length]
-            };
-            self.phrasebook = if is_end { PhrasebookIter::EMPTY } else { tmp };
-            ret
-        })
-    }
-}
 
-impl fmt::Debug for IterStr {
-    fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
-        let printed = self.clone();
-        for s in printed {
-            write!(fmtr, "{}", s)?
-        }
-        Ok(())
+                (length, idx as usize)
+            };
+            let offset = LEXICON_OFFSETS[idx] as usize;
+            &LEXICON[offset..offset + length]
+        };
+        self.phrasebook = if is_end { PhrasebookIter::EMPTY } else { tmp };
+        Some(ret)
     }
 }

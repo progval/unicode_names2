@@ -20,7 +20,7 @@ impl IterStr {
     }
 }
 
-static HYPHEN: u8 = 127;
+const HYPHEN: u8 = 127;
 
 impl Iterator for IterStr {
     type Item = &'static str;
@@ -55,9 +55,8 @@ impl Iterator for IterStr {
 
                     // search for the right place: the first one where
                     // the end-point is after our current index.
-                    match LEXICON_ORDERED_LENGTHS.iter().find(|&&(end, _)| idx < end) {
-                        Some(&(_, len)) => len as usize,
-                        None => unreachable!(),
+                    match LEXICON_ORDERED_LENGTHS.binary_search_by_key(&idx, |&(end, _)| end - 1) {
+                        Ok(i) | Err(i) => LEXICON_ORDERED_LENGTHS[i].1 as usize,
                     }
                 };
                 let offset = LEXICON_OFFSETS[idx] as usize;

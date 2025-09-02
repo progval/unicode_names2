@@ -1,4 +1,4 @@
-use core::{fmt, slice};
+use core::fmt;
 
 use crate::generated::{
     LEXICON, LEXICON_OFFSETS, LEXICON_ORDERED_LENGTHS, LEXICON_SHORT_LENGTHS, PHRASEBOOK,
@@ -6,15 +6,35 @@ use crate::generated::{
 };
 
 #[derive(Clone)]
+struct PhrasebookIter {
+    index: u32,
+}
+
+impl PhrasebookIter {
+    const EMPTY: Self = Self {
+        index: PHRASEBOOK.len() as u32,
+    };
+}
+
+impl Iterator for PhrasebookIter {
+    type Item = u8;
+    fn next(&mut self) -> Option<Self::Item> {
+        let b = *PHRASEBOOK.get(self.index as usize)?;
+        self.index += 1;
+        Some(b)
+    }
+}
+
+#[derive(Clone)]
 pub struct IterStr {
-    phrasebook: slice::Iter<'static, u8>,
+    phrasebook: PhrasebookIter,
     last_was_word: bool,
 }
 
 impl IterStr {
-    pub fn new(start_index: usize) -> IterStr {
+    pub fn new(start_index: u32) -> IterStr {
         IterStr {
-            phrasebook: PHRASEBOOK[start_index..].iter(),
+            phrasebook: PhrasebookIter { index: start_index },
             last_was_word: false,
         }
     }
@@ -26,7 +46,7 @@ impl Iterator for IterStr {
     type Item = &'static str;
     fn next(&mut self) -> Option<&'static str> {
         let mut tmp = self.phrasebook.clone();
-        tmp.next().map(|&raw_b| {
+        tmp.next().map(|raw_b| {
             // the first byte includes if it is the last in this name
             // in the high bit.
             let (is_end, b) = (raw_b & 0b1000_0000 != 0, raw_b & 0b0111_1111);
@@ -51,7 +71,7 @@ impl Iterator for IterStr {
                     // these lengths are hard-coded
                     LEXICON_SHORT_LENGTHS[idx] as usize
                 } else {
-                    idx = (b - PHRASEBOOK_SHORT) as usize * 256 + (*tmp.next().unwrap()) as usize;
+                    idx = (b - PHRASEBOOK_SHORT) as usize * 256 + (tmp.next().unwrap()) as usize;
 
                     // search for the right place: the first one where
                     // the end-point is after our current index.
@@ -62,7 +82,7 @@ impl Iterator for IterStr {
                 let offset = LEXICON_OFFSETS[idx] as usize;
                 &LEXICON[offset..offset + length]
             };
-            self.phrasebook = if is_end { ([]).iter() } else { tmp };
+            self.phrasebook = if is_end { PhrasebookIter::EMPTY } else { tmp };
             ret
         })
     }

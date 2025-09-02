@@ -301,7 +301,7 @@ pub fn name(c: char) -> Option<Name> {
         }
     } else {
         Some(Name {
-            data: Name_::Plain(iter_str::IterStr::new(offset as usize)),
+            data: Name_::Plain(iter_str::IterStr::new(offset)),
         })
     }
 }

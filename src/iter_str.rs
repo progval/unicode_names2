@@ -1,6 +1,6 @@
 use crate::generated::{
-    LEXICON, LEXICON_OFFSETS, LEXICON_ORDERED_LENGTHS, LEXICON_SHORT_LENGTHS, PHRASEBOOK,
-    PHRASEBOOK_SHORT,
+    LEXICON, LEXICON_OFFSETS, LEXICON_ORDERED_LENGTHS, LEXICON_ORDERED_LENGTHS_LEN,
+    LEXICON_SHORT_LENGTHS, PHRASEBOOK, PHRASEBOOK_SHORT,
 };
 
 #[derive(Clone)]
@@ -9,9 +9,11 @@ struct PhrasebookIter {
 }
 
 impl PhrasebookIter {
-    const EMPTY: Self = Self {
-        index: PHRASEBOOK.len() as u32,
-    };
+    fn empty() -> Self {
+        Self {
+            index: PHRASEBOOK.len() as u32,
+        }
+    }
 }
 
 impl Iterator for PhrasebookIter {
@@ -41,8 +43,8 @@ impl IterStr {
 const HYPHEN: u8 = 127;
 
 /// An array where `arr[i]` holds the largest lexicon index with length `i`.
-static LEXICON_ORDERED_LENGTH_INDICES: [u16; LEXICON_ORDERED_LENGTHS.len()] = {
-    let mut arr = [0u16; LEXICON_ORDERED_LENGTHS.len()];
+static LEXICON_ORDERED_LENGTH_INDICES: [u16; LEXICON_ORDERED_LENGTHS_LEN] = {
+    let mut arr = [0u16; LEXICON_ORDERED_LENGTHS_LEN];
 
     let mut prev_len = None;
     let mut i = 0;
@@ -111,7 +113,7 @@ impl Iterator for IterStr {
             let offset = LEXICON_OFFSETS[idx] as usize;
             &LEXICON[offset..offset + length]
         };
-        self.phrasebook = if is_end { PhrasebookIter::EMPTY } else { tmp };
+        self.phrasebook = if is_end { PhrasebookIter::empty() } else { tmp };
         Some(ret)
     }
 }

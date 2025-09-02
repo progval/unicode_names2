@@ -42,6 +42,30 @@ impl IterStr {
 
 const HYPHEN: u8 = 127;
 
+/// An array where `arr[i]` holds the largest lexicon index with length `i`.
+static LEXICON_ORDERED_LENGTH_INDICES: [u16; LEXICON_ORDERED_LENGTHS.len()] = {
+    let mut arr = [0u16; LEXICON_ORDERED_LENGTHS.len()];
+
+    let mut prev_len = None;
+    let mut i = 0;
+    while i < LEXICON_ORDERED_LENGTHS.len() {
+        let (end_idx, length) = LEXICON_ORDERED_LENGTHS[i];
+
+        // make sure this is contiguous - that there are no gaps where e.g. there
+        // are words of length 15 and of length 17 but none of length 16.
+        if let Some(prev_len) = prev_len {
+            assert!(length == prev_len + 1);
+        }
+        prev_len = Some(length);
+
+        assert!(end_idx <= u16::MAX as usize);
+        arr[i] = end_idx as u16 - 1;
+        i += 1;
+    }
+
+    arr
+};
+
 impl Iterator for IterStr {
     type Item = &'static str;
     fn next(&mut self) -> Option<&'static str> {
@@ -73,10 +97,16 @@ impl Iterator for IterStr {
                 } else {
                     idx = (b - PHRASEBOOK_SHORT) as usize * 256 + (tmp.next().unwrap()) as usize;
 
-                    // search for the right place: the first one where
-                    // the end-point is after our current index.
-                    match LEXICON_ORDERED_LENGTHS.binary_search_by_key(&idx, |&(end, _)| end - 1) {
-                        Ok(i) | Err(i) => LEXICON_ORDERED_LENGTHS[i].1 as usize,
+                    // The value at each index `i` in the array `LEXICON_ORDERED_LENGTH_INDICES`
+                    // (herein referred to as `arr`) is the largest lexicon index with length `i`.
+                    match LEXICON_ORDERED_LENGTH_INDICES.binary_search(&(idx as u16)) {
+                        // In this case, `idx` is equal to the index at `arr[i]`,
+                        // so `i` is the correct length.
+                        Ok(i) => i,
+                        // `binary_search(idx)` returning `Err(i)` means that `arr[i-1] < idx < arr[i]`.
+                        // Therefore, `idx` is larger than the largest index with length `i - 1`, but
+                        // smaller than the largest index with length `i`, meaning its length is `i`.
+                        Err(i) => i,
                     }
                 };
                 let offset = LEXICON_OFFSETS[idx] as usize;

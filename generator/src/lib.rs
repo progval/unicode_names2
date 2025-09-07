@@ -343,6 +343,11 @@ fn write_codepoint_maps(ctxt: &mut Context, codepoint_names: Vec<(char, &str)>) 
     ctxt.write_plain_string("LEXICON", &lexicon_string);
     ctxt.write_debugs("LEXICON_OFFSETS", "u32", &lexicon_offsets);
     ctxt.write_debugs("LEXICON_SHORT_LENGTHS", "u8", &lexicon_short_lengths);
+    w!(
+        ctxt,
+        "pub const LEXICON_ORDERED_LENGTHS_LEN: usize = {};\n",
+        lexicon_ordered_lengths.len()
+    );
     ctxt.write_debugs(
         "LEXICON_ORDERED_LENGTHS",
         "(usize, u8)",

@@ -506,10 +506,7 @@ fn normalise_name(search_name: &str, buf: &mut [u8; LONGEST_NAME_LEN]) -> usize 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::{
-        distributions::{Distribution, Standard},
-        prelude::{SeedableRng, StdRng},
-    };
+    use fastrand::Rng;
     use std::char;
     use std::prelude::v1::*;
 
@@ -725,14 +722,13 @@ mod tests {
     #[bench]
     fn name_10000_invalid(b: &mut Bencher) {
         // be consistent across runs, but avoid sequential/caching.
-        let mut rng = StdRng::seed_from_u64(0x12345678);
-        let chars: Vec<char> = Standard
-            .sample_iter(&mut rng)
-            .take(10000)
+        let mut rng = Rng::with_seed(0x12345678);
+        let chars: Vec<char> = std::iter::repeat_with(|| rng.char(..))
             .filter_map(|c| match c {
                 c if name(c).is_none() => Some(c),
                 _ => None,
             })
+            .take(10000)
             .collect();
 
         b.iter(|| {
@@ -763,13 +759,12 @@ mod tests {
     #[bench]
     fn character_10000(b: &mut Bencher) {
         // be consistent across runs, but avoid sequential/caching.
-        let mut rng = StdRng::seed_from_u64(0x12345678);
+        let mut rng = Rng::with_seed(0x12345678);
 
-        let names: Vec<_> = Standard
-            .sample_iter(&mut rng)
-            .take(10000)
+        let names: Vec<_> = std::iter::repeat_with(|| rng.char(..))
             .filter_map(name)
             .map(|name| name.to_string())
+            .take(10000)
             .collect();
 
         b.iter(|| {

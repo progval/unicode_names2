@@ -2,7 +2,7 @@
 
 name = "unicode_names2_generator"
 edition = "2018"
-rust-version = "1.63.0"
+rust-version = "1.66.0"
 version = "2.0.0"
 authors = ["Huon Wilson <dbau.pp@gmail.com>"]
 homepage = "https://github.com/progval/unicode_names2"
@@ -21,4 +21,4 @@ timing = ["time"]
 [dependencies]
 time = { version = "0.3", optional = true }
 rand = "0.8.5"
-phf_codegen = "0.11.1"
+phf_codegen = "0.13"

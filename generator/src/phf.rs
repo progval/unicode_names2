@@ -3,7 +3,7 @@
 //!
 //! Strongly inspired by https://github.com/sfackler/rust-phf
 
-use rand::prelude::{Rng, SeedableRng, SliceRandom, StdRng};
+use fastrand::Rng;
 use std::iter::repeat;
 
 static NOVAL: char = '\0';
@@ -43,7 +43,7 @@ fn try_phf_table(
     values: &[(char, String)],
     lambda: usize,
     seed: u64,
-    rng: &mut StdRng,
+    rng: &mut Rng,
 ) -> Option<(Vec<(u32, u32)>, Vec<char>)> {
     let hashes: Vec<_> = values
         .iter()
@@ -90,8 +90,8 @@ fn try_phf_table(
     // shuffle them.
     let mut d1s = (0..(table_len as u32)).collect::<Vec<_>>();
     let mut d2s = d1s.clone();
-    d1s.shuffle(rng);
-    d2s.shuffle(rng);
+    rng.shuffle(&mut d1s);
+    rng.shuffle(&mut d2s);
 
     // run through each bucket and try to fit the elements into the
     // array by choosing appropriate adjusting factors
@@ -144,7 +144,7 @@ pub fn create_phf(
     lambda: usize,
     max_tries: usize,
 ) -> (u64, Vec<(u32, u32)>, Vec<char>) {
-    let mut rng = StdRng::seed_from_u64(0xf0f0f0f0);
+    let mut rng = Rng::with_seed(0xf0f0f0f0);
     #[cfg(feature = "timing")]
     let start = time::Instant::now();
 
@@ -156,7 +156,7 @@ pub fn create_phf(
         #[cfg(not(feature = "timing"))]
         println!("PHF #{}", i);
 
-        let seed = rng.gen();
+        let seed = rng.u64(..);
         if let Some((disp, map)) = try_phf_table(data, lambda, seed, &mut rng) {
             #[cfg(feature = "timing")]
             println!(

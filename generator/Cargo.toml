@@ -20,5 +20,5 @@ timing = ["time"]
 
 [dependencies]
 time = { version = "0.3", optional = true }
-rand = "0.8.5"
+fastrand = "2.3.0"
 phf_codegen = "0.13"

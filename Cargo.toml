@@ -39,8 +39,7 @@ generator-timing = ["unicode_names2_generator/timing"]
 phf = { version = "0.13", default-features = false }
 
 [dev-dependencies]
-rand = "0.8.5"
-rand_xorshift = "0.3.0"
+fastrand = "2.3.0"
 unicode_names2_macros = { path = "unicode_names2_macros", version = ">=0.3, <3.0" }
 
 [build-dependencies]

@@ -1,12 +1,9 @@
 //! Convert between characters and their standard names.
 //!
-//! This crate provides two functions for mapping from a `char` to the
-//! name given by the Unicode standard (16.0). There are no runtime
-//! requirements so this is usable with only `core` (this requires
-//! specifying the `no_std` cargo feature). The tables are heavily
-//! compressed, but still large (500KB), and still offer efficient
-//! `O(1)` look-ups in both directions (more precisely, `O(length of
-//! name)`).
+//! This crate provides two functions for mapping from a `char` to the name given by the Unicode
+//! standard (16.0). There are no runtime requirements so this crate is usable with only `core`. The
+//! tables are heavily compressed, but still large (500KB), and still offer efficient `O(1)`
+//! look-ups in both directions (more precisely, `O(length of name)`).
 //!
 //! ```rust
 //!     println!("☃ is called {:?}", unicode_names2::name('☃')); // SNOWMAN
@@ -18,15 +15,12 @@
 //!
 //! # Macros
 //!
-//! The associated `unicode_names2_macros` crate provides two macros
-//! for converting at compile-time, giving named literals similar to
-//! Python's `"\N{...}"`.
+//! The associated `unicode_names2_macros` crate provides two macros for converting at compile-time,
+//! giving named literals similar to Python's `"\N{...}"`.
 //!
-//! - `named_char!(name)` takes a single string `name` and creates a
-//!   `char` literal.
-//! - `named!(string)` takes a string and replaces any `\\N{name}`
-//!   sequences with the character with that name. NB. String escape
-//!   sequences cannot be customised, so the extra backslash (or a raw
+//! - `named_char!(name)` takes a single string `name` and creates a `char` literal.
+//! - `named!(string)` takes a string and replaces any `\\N{name}` sequences with the character with
+//!   that name. NB. String escape sequences cannot be customised, so the extra backslash (or a raw
 //!   string) is required, unless you use a raw string.
 //!
 //! ```rust
@@ -67,13 +61,9 @@
 //! [UAX44-LM2]: https://www.unicode.org/reports/tr44/tr44-34.html#UAX44-LM2
 //! [`is_ascii_whitespace`]: char::is_ascii_whitespace
 
-#![cfg_attr(feature = "no_std", no_std)]
-#![cfg_attr(test, feature(test))]
+#![no_std]
 #![deny(missing_docs, unsafe_code)]
-
-#[cfg(all(test, feature = "no_std"))]
-#[macro_use]
-extern crate std;
+#![cfg_attr(test, feature(test))]
 
 use core::{char, fmt};
 use generated::{
@@ -510,11 +500,11 @@ mod tests {
         distributions::{Distribution, Standard},
         prelude::{SeedableRng, StdRng},
     };
-    use std::char;
-    use std::prelude::v1::*;
+
+    extern crate std;
+    use std::{format, prelude::v1::*};
 
     extern crate test;
-
     use test::bench::Bencher;
 
     static DATA: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/data/UnicodeData.txt"));
@@ -778,9 +768,4 @@ mod tests {
             }
         })
     }
-}
-
-#[cfg(all(feature = "no_std", not(test)))]
-mod std {
-    pub use core::{clone, fmt, marker};
 }

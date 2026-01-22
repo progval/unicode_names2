@@ -31,9 +31,9 @@ impl Trie {
             Some(b) => self.get_child(b).set_offset(it, offset),
         }
     }
-    /// insert the value given by the sequence `it`, returning a tuple
-    /// (is this a substring already in the tree, was this exact
-    /// sequence previously inserted).
+
+    /// insert the value given by the sequence `it`, returning a tuple (is this a substring already
+    /// in the tree, was this exact sequence previously inserted).
     pub fn insert<I: Iterator<Item = u8>>(
         &mut self,
         mut it: I,
@@ -74,6 +74,7 @@ pub struct Items<'a> {
 
 impl<'a> Iterator for Items<'a> {
     type Item = (usize, Vec<u8>, Option<usize>);
+
     fn next(&mut self) -> Option<(usize, Vec<u8>, Option<usize>)> {
         'outer: loop {
             if let Some(t) = self.current {

@@ -119,9 +119,8 @@ fn write_cjk_ideograph_ranges(ctxt: &mut Context, ranges: &[(char, char)]) {
     ctxt.write_debugs("CJK_IDEOGRAPH_RANGES", "(char, char)", ranges)
 }
 
-/// Construct a huge string storing the text data, and return it,
-/// along with information about the position and frequency of the
-/// constituent words of the input.
+/// Construct a huge string storing the text data, and return it, along with information about the
+/// position and frequency of the constituent words of the input.
 fn create_lexicon_and_offsets(
     mut codepoint_names: Vec<(char, &str)>,
 ) -> (String, Vec<(usize, Vec<u8>, usize)>) {

@@ -72,7 +72,7 @@ pub struct Items<'a> {
     stack: Vec<hash_map::Iter<'a, u8, Trie>>,
 }
 
-impl<'a> Iterator for Items<'a> {
+impl Iterator for Items<'_> {
     type Item = (usize, Vec<u8>, Option<usize>);
     fn next(&mut self) -> Option<(usize, Vec<u8>, Option<usize>)> {
         'outer: loop {

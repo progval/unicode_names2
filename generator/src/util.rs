@@ -28,7 +28,7 @@ pub struct Split<'a, 'b> {
     pending: &'a str,
     done: bool,
 }
-impl<'a, 'b> Iterator for Split<'a, 'b> {
+impl<'a> Iterator for Split<'a, '_> {
     type Item = &'a str;
     fn next(&mut self) -> Option<&'a str> {
         if self.done {

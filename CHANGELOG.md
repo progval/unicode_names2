@@ -1,3 +1,19 @@
+# v3.0.0
+
+*2026-06-04*
+
+Breaking:
+
+* Bump MSRV to 1.65
+
+Performance improvements:
+
+* Use binary search in `iter_str.rs`
+
+Internal:
+
+* Fix Clippy warnings
+
 # v2.0.0
 
 *2025-06-19*

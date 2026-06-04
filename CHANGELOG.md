@@ -1,3 +1,11 @@
+# v3.1.0
+
+*2026-06-04*
+
+Data:
+
+* Update data to Unicode 17 ([#57](https://github.com/progval/unicode_names2/pull/57))
+
 # v3.0.0
 
 *2026-06-04*

@@ -2,7 +2,7 @@
 
 name = "unicode_names2_generator"
 edition = "2018"
-rust-version = "1.63.0"
+rust-version = "1.65.0"
 version = "2.0.0"
 authors = ["Huon Wilson <dbau.pp@gmail.com>"]
 homepage = "https://github.com/progval/unicode_names2"

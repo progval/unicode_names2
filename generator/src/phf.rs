@@ -61,7 +61,7 @@ fn try_phf_table(
     }
 
     // place the large buckets first.
-    buckets.sort_by(|(_, a), (_, b)| b.len().cmp(&a.len()));
+    buckets.sort_by_key(|(_index, keys)| std::cmp::Reverse(keys.len()));
 
     // this stores the final computed backing vector, i.e. getting the
     // value for `foo` is "just" `map[displace(hash(foo))]`, where

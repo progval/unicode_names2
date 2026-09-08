@@ -1,3 +1,17 @@
+# v4.0.0
+
+*2026-09-08*
+
+Fix:
+
+* Character aliases with spaces failed to resolve (see [#60](https://github.com/progval/unicode_names2/issues/60) for details). ([#61](https://github.com/progval/unicode_names2/pull/61))
+
+Internal:
+
+* Fix Clippy warnings
+
+This is a major version bump as the fix requires `unicode_names2` and `unicode_names2_generator` versions to match
+
 # v3.1.0
 
 *2026-06-04*

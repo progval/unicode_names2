@@ -3,7 +3,7 @@
 name = "unicode_names2"
 edition = "2018"
 rust-version = "1.65.0"
-version = "3.1.0"
+version = "4.0.0"
 authors = [
     "Huon Wilson <dbau.pp@gmail.com>",
     "Kang Seonghoon <public+rust@mearie.org>",
@@ -41,7 +41,7 @@ phf = { version = "0.11.1", default-features = false }
 [dev-dependencies]
 rand = "0.8.5"
 rand_xorshift = "0.3.0"
-unicode_names2_macros = { path = "unicode_names2_macros", version = ">=0.3, <4.0" }
+unicode_names2_macros = { path = "unicode_names2_macros", version = ">=0.3, <5.0" }
 
 [build-dependencies]
-unicode_names2_generator = { version = "3.1.0", path = "generator" }
+unicode_names2_generator = { version = "4.0.0", path = "generator" }

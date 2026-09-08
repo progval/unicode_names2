@@ -3,7 +3,7 @@
 name = "unicode_names2_generator"
 edition = "2018"
 rust-version = "1.65.0"
-version = "3.1.0"
+version = "4.0.0"
 authors = ["Huon Wilson <dbau.pp@gmail.com>"]
 homepage = "https://github.com/progval/unicode_names2"
 repository = "https://github.com/progval/unicode_names2"

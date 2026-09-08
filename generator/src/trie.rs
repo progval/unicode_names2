@@ -85,19 +85,17 @@ impl Iterator for Items<'_> {
             }
 
             loop {
-                match self.stack.pop() {
-                    None => return None,
-                    Some(mut it) => match it.next() {
-                        Some((&b, t)) => {
-                            self.parents.push(b);
-                            self.current = Some(t);
-                            self.stack.push(it);
-                            continue 'outer;
-                        }
-                        None => {
-                            self.parents.pop();
-                        }
-                    },
+                let mut it = self.stack.pop()?;
+                match it.next() {
+                    Some((&b, t)) => {
+                        self.parents.push(b);
+                        self.current = Some(t);
+                        self.stack.push(it);
+                        continue 'outer;
+                    }
+                    None => {
+                        self.parents.pop();
+                    }
                 }
             }
         }

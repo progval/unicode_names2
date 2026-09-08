@@ -679,8 +679,9 @@ mod tests {
     #[test]
     fn character_by_alias() {
         assert_eq!(super::character_by_alias(b"NEWLINE"), Some('\n'));
+        assert_eq!(super::character_by_alias(b"NEW LINE"), None);
         assert_eq!(super::character_by_alias(b"BACKSPACE"), Some('\u{8}'));
-        assert_eq!(super::character_by_alias(b"NOTANALIAS"), None);
+        assert_eq!(super::character_by_alias(b"NOT AN ALIAS"), None);
     }
 
     #[test]

@@ -1,6 +1,6 @@
 //! Convert between characters and their standard names.
 //!
-//! This crate provides two functions for mapping from a `char` to the
+//! This crate provides functions for mapping from a `char` to the
 //! name given by the Unicode standard (17.0). There are no runtime
 //! requirements so this is usable with only `core` (this requires
 //! specifying the `no_std` cargo feature). The tables are heavily
@@ -95,10 +95,10 @@ mod generated_phf {
 #[allow(dead_code)]
 mod jamo;
 
-/// A map of unicode aliases to their corresponding values.
+/// A map of unicode aliases to their corresponding characters and registered spellings.
 /// Generated in generator
 #[allow(dead_code)]
-static ALIASES: phf::Map<&'static [u8], char> =
+static ALIASES: phf::Map<&'static [u8], (char, &'static str)> =
     include!(concat!(env!("OUT_DIR"), "/generated_alias.rs"));
 
 mod iter_str;
@@ -302,6 +302,29 @@ pub fn name(c: char) -> Option<Name> {
     }
 }
 
+/// Find a Unicode name alias using [loose matching](self#loose-matching).
+///
+/// Return the character and the alias spelling registered by Unicode, including
+/// spaces and hyphens, or `None` if no alias matches. Primary character names
+/// are not included. Control characters can have aliases even though they have
+/// no primary [`name`].
+///
+/// Callers can compare their input with the returned spelling to apply their
+/// own matching requirements.
+///
+/// # Example
+///
+/// ```rust
+/// assert_eq!(unicode_names2::alias("new_line"), Some(('\n', "NEW LINE")));
+/// assert_eq!(unicode_names2::alias("nl"), Some(('\n', "NL")));
+/// assert_eq!(unicode_names2::alias("LATIN SMALL LETTER A"), None);
+/// ```
+pub fn alias(search_name: &str) -> Option<(char, &'static str)> {
+    let mut buf = [0; LONGEST_NAME_LEN];
+    let len = normalise_name(search_name, &mut buf);
+    ALIASES.get(&buf[..len]).copied()
+}
+
 fn fnv_hash<I: Iterator<Item = u8>>(x: I) -> u64 {
     let mut g = 0xcbf29ce484222325 ^ generated_phf::NAME2CODE_N;
     for b in x {
@@ -325,7 +348,7 @@ fn split(hash: u64) -> (u32, u32, u32) {
 
 /// Get a character from a normalized alias name, returning `None` if it is not found.
 fn character_by_alias(name: &[u8]) -> Option<char> {
-    ALIASES.get(name).copied()
+    ALIASES.get(name).map(|&(c, _)| c)
 }
 
 /// Find the character called `name`, or `None` if no such character
@@ -685,10 +708,64 @@ mod tests {
     }
 
     #[test]
+    fn alias_lookup() {
+        assert_eq!(alias("new_line"), Some(('\n', "NEW LINE")));
+        assert_eq!(
+            alias("byte_order_mark"),
+            Some(('\u{feff}', "BYTE ORDER MARK"))
+        );
+        assert_eq!(alias("LATIN SMALL LETTER A"), None);
+    }
+
+    // A consumer can require registered spellings while still ignoring ASCII case.
+    fn character_strict(input: &str) -> Option<char> {
+        let c = character(input)?;
+        let matches_name = name(c).map_or(false, |name| {
+            name.flat_map(str::bytes)
+                .eq(input.bytes().map(|byte| byte.to_ascii_uppercase()))
+        });
+        (matches_name
+            || alias(input).map_or(false, |(alias_character, spelling)| {
+                alias_character == c && spelling.eq_ignore_ascii_case(input)
+            }))
+        .then_some(c)
+    }
+
+    #[test]
+    fn strict_matching() {
+        assert_eq!(character_strict("latin small letter a"), Some('a'));
+        assert_eq!(character_strict("new line"), Some('\n'));
+        assert_eq!(character_strict("byte order mark"), Some('\u{feff}'));
+
+        assert_eq!(character_strict("LOWLINE"), None);
+        assert_eq!(character_strict("LOW_LINE"), None);
+        assert_eq!(character_strict("FULL S-T-O-P"), None);
+        assert_eq!(character_strict("new_line"), None);
+
+        assert_eq!(character_strict("ZERO WIDTH SPACE"), Some('\u{200b}'));
+        assert_eq!(character_strict("zero width space"), Some('\u{200b}'));
+        assert_eq!(character_strict("zero-width space"), None);
+        assert_eq!(character_strict("zerowidthspace"), None);
+
+        assert_eq!(character_strict("hangul syllable ga"), Some('\u{ac00}'));
+        assert_eq!(character_strict("HANGULSYLLABLEGA"), None);
+        assert_eq!(
+            character_strict("cjk unified ideograph-4e00"),
+            Some('\u{4e00}')
+        );
+        assert_eq!(character_strict("CJKUNIFIEDIDEOGRAPH4E00"), None);
+
+        assert_eq!(character_strict("HANGUL JUNGSEONG O-E"), Some('\u{1180}'));
+        assert_eq!(character_strict("HANGUL JUNGSEONG OE"), Some('\u{116c}'));
+    }
+
+    #[test]
     fn test_uax44() {
         assert_eq!(character(" L_O_W l_i_n_e"), Some('_'));
         assert_eq!(character("space \x09\x0a\x0c\x0d"), Some(' '));
         assert_eq!(character("FULL S-T-O-P"), Some('.'));
+        assert_eq!(character("zero-width space"), Some('\u{200b}'));
+        assert_eq!(character("zerowidthspace"), Some('\u{200b}'));
         assert_eq!(character("tibetan letter -a"), Some('\u{F60}'));
         assert_eq!(character("tibetan letter- a"), Some('\u{F60}'));
         assert_eq!(character("tibetan letter  -   a"), Some('\u{F60}'));

@@ -483,9 +483,9 @@ pub fn generate_aliases(name_aliases: &'static str, path: &Path) {
     for Alias { code, alias, .. } in get_aliases(name_aliases).into_iter() {
         let cp = u32::from_str_radix(code, 16).unwrap();
         let c = char::from_u32(cp).unwrap();
-        let alias = normalise_name(alias, c);
-        let formatted = format!("'\\u{{{code}}}'");
-        aliases.entry(alias, &formatted);
+        let normalised_alias = normalise_name(alias, c);
+        let formatted = format!("('\\u{{{code}}}', {alias:?})");
+        aliases.entry(normalised_alias, &formatted);
     }
     let aliases = aliases.build().to_string().replace("(\"", "(b\"");
     writeln!(BufWriter::new(File::create(path).unwrap()), "{aliases}",).unwrap();

@@ -507,7 +507,7 @@ fn normalise_name(search_name: &str, buf: &mut [u8; LONGEST_NAME_LEN]) -> usize 
 mod tests {
     use super::*;
     use rand::{
-        distributions::{Distribution, Standard},
+        distr::{Distribution, StandardUniform},
         prelude::{SeedableRng, StdRng},
     };
     use std::char;
@@ -735,7 +735,7 @@ mod tests {
     fn name_10000_invalid(b: &mut Bencher) {
         // be consistent across runs, but avoid sequential/caching.
         let mut rng = StdRng::seed_from_u64(0x12345678);
-        let chars: Vec<char> = Standard
+        let chars: Vec<char> = StandardUniform
             .sample_iter(&mut rng)
             .take(10000)
             .filter_map(|c| match c {
@@ -774,7 +774,7 @@ mod tests {
         // be consistent across runs, but avoid sequential/caching.
         let mut rng = StdRng::seed_from_u64(0x12345678);
 
-        let names: Vec<_> = Standard
+        let names: Vec<_> = StandardUniform
             .sample_iter(&mut rng)
             .take(10000)
             .filter_map(name)
